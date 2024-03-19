@@ -1,0 +1,17 @@
+{
+  "name": "streamvault",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private":true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "install": "yarn workspaces frontend install",
+    "start": "yarn workspaces frontend start",
+    "dev": "yarn workspace frontend dev",
+    "backend": "yarn workspace backend serve"
+
+  }
+}

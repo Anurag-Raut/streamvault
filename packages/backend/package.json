@@ -1,0 +1,12 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "serve": "go run main.go"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
