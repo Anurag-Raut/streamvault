@@ -8,8 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "install": "yarn workspaces frontend install",
-    "start": "yarn workspaces frontend start",
+    "install": "yarn workspace frontend install",
+    "add": "yarn workspace frontend add",
+    "start": "yarn workspace frontend start",
     "dev": "yarn workspace frontend dev",
     "backend": "yarn workspace backend serve"
 
