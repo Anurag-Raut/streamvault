@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	// adapt "demo" to your module name if it differs
 	"streamvault/postgres/db"
@@ -86,12 +87,15 @@ func Disconnect() error {
 	return nil
 }
 
-func AddStream(title string) (string, error) {
+func AddStream(title string, description string, cateory string, thumbnail string) (string, error) {
 
 	ctx := context.Background()
 
 	addedStream, err := client.Stream.CreateOne(
 		db.Stream.Title.Set(title),
+		db.Stream.Thumbnail.Set(thumbnail),
+		db.Stream.Description.Set(description),
+		db.Stream.Category.Set(cateory),
 	).Exec(ctx)
 
 	if err != nil {
@@ -103,4 +107,51 @@ func AddStream(title string) (string, error) {
 
 	return string(addedStream.ID), nil
 
+}
+
+func GetStreams(w http.ResponseWriter, r *http.Request) {
+
+	ctx := context.Background()
+
+	streams, err := client.Stream.FindMany().Exec(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result, _ := json.MarshalIndent(streams, "", "  ")
+	w.Write(result)
+
+}
+
+func UserExists(userId string) (bool, error) {
+	ctx := context.Background()
+
+	user, err := client.User.FindUnique(
+		db.User.UserID.Equals(userId),
+	).Exec(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	if user == nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func CreateUser(userId string) error {
+	ctx := context.Background()
+
+	_, err := client.User.CreateOne(
+		db.User.Username.Set(userId),
+		db.User.UserID.Set(userId),
+	).Exec(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

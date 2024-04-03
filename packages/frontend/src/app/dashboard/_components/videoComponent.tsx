@@ -5,7 +5,7 @@ const CameraField = ({mediaRecorderRef}:any) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const constraints: MediaStreamConstraints = { video: true,audio:false };
+    const constraints: MediaStreamConstraints = { video: true,audio:true };
 
     const enableCamera = async () => {
       try {
@@ -38,7 +38,9 @@ const CameraField = ({mediaRecorderRef}:any) => {
   }, []);
 
   return (
-     <div className='w-[40%] h-[200] bg-black flex justify-center items-center'>
+     <div style={{
+      backgroundColor: 'red',
+     }} className='w-[25%] h-auto bg-[#FFFFFF] flex justify-center items-center'>
 
          <video ref={videoRef} width={400} height={200}  autoPlay playsInline></video>
      </div>

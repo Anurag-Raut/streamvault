@@ -12,7 +12,8 @@
     "add": "yarn workspace frontend add",
     "start": "yarn workspace frontend start",
     "dev": "yarn workspace frontend dev",
-    "backend": "yarn workspace backend serve"
+    "backend": "sudo docker start postgres && yarn workspace backend dbStart && yarn workspace backend serve ",
+    "build": "yarn workspace frontend build"
 
   }
 }

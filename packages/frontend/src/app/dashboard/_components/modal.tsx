@@ -1,0 +1,89 @@
+"use client"
+import { ChangeEvent, useState } from "react";
+import { constSelector, useRecoilState } from "recoil";
+import { streamInfo } from "~/recoil/atom/streamInfo";
+import {  toast } from 'react-toastify';
+import axios from "axios";
+
+export default function Modal(){
+    const [streamInfoState,setStreamInfoState]=useRecoilState(streamInfo)
+
+    const [newStreamInfo,setNewStreamInfo]=useState(streamInfoState)
+    const [files,setFiles]=useState<FileList | null>(null)
+  
+    const uploadThumbnail =async ()=>{
+        try{
+            const formdata=new FormData()
+            formdata.append('thumbnail',files?.[0] as Blob)
+    
+            const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata)
+        
+            const thumbnail="http://localhost:8080/hls/"+res.data;
+            console.log(thumbnail,"thumbnail")
+            setNewStreamInfo((prev)=>({...prev,thumbnail:thumbnail}))  
+            toast.success('Thumbnail uploaded successfully')
+        }
+        catch(err){
+            console.log(err)
+            toast.error('Failed to upload thumbnail')
+        }
+
+       
+
+    }
+
+    const onStreamInfoEdit = async () => {
+     
+      
+        
+        setStreamInfoState(newStreamInfo)
+        const modal = document.getElementById('my_modal_3') as HTMLDialogElement | null;
+        if (modal) {
+            modal.close();
+        }
+    }
+
+    return (
+        <dialog id="my_modal_3" className="modal w-full">
+        <div className="modal-box w-full]">
+            <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+           <div className="w-[100%] ">
+            <div className="flex items-center my-5 justify-between ">
+                <h1 className="text-xl text-center mr-3 text-nowrap">Name :</h1>
+                <input onChange={(event:ChangeEvent<HTMLInputElement>)=>{
+                    setNewStreamInfo((prev)=>({...prev,title:event.target.value}))
+                }} type="text" placeholder="Type here" className="input input-bordered w-full max-w-xs " />
+
+            </div>
+            <div className="flex items-center my-5 justify-between ">
+                <h1 className="text-xl text-center mr-3 text-nowrap ">Description :</h1>
+                <textarea  onChange={(event:ChangeEvent<HTMLTextAreaElement>)=>{
+                    setNewStreamInfo((prev)=>({...prev,description:event.target.value}))
+                }} className="textarea textarea-bordered w-full  max-w-xs " placeholder="Bio"></textarea>
+            </div>
+            <div className="flex items-center my-5 justify-between ">
+                <h1 className="text-xl text-center mr-3 text-nowrap">Category :</h1>
+                <input onChange={(event:ChangeEvent<HTMLInputElement>)=>{
+                    setNewStreamInfo((prev)=>({...prev,category:event.target.value}))
+                }} type="text" placeholder="Type here" className="input input-bordered w-full max-w-xs " />
+
+            </div>
+            <div className="flex items-center my-5 justify-between ">
+                <h1 className="text-xl text-center mr-3 text-nowrap">Thumbnail :</h1>
+                <input onChange={(event:ChangeEvent<HTMLInputElement>)=>{
+                    setFiles(event.target.files)
+                    // setNewStreamInfo((prev)=>({...prev,thumbnail:event.target.files?.[0]}))
+                }} type="file" className="file-input file-input-bordered file-input-accent w-full max-w-xs" />
+                    <button onClick={uploadThumbnail} className="btn btn-primary m-3">upload</button>
+
+            </div>
+            <button onClick={onStreamInfoEdit} className="btn btn-primary">Save</button>
+
+           </div>
+        </div>
+    </dialog>
+    )
+}

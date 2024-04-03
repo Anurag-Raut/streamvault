@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:postgres@localhost:5432/anurag"
+  url      = "postgresql://postgres:postgres@localhost:5432/streamvault"
 }
 
 generator db {
@@ -12,4 +12,15 @@ model Stream {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   title     String
+  thumbnail String
+  description String
+  category String
+}
+
+model User {
+  id        String   @default(cuid()) @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  username  String   @unique
+  userId    String   @unique
 }

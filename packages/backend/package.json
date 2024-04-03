@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "go run main.go"
+    "serve": "go run main.go",
+    "dbStart":"npx prisma db push --schema=/home/anurag/projects/streamvault/packages/backend/postgres/schema.prisma && npx prisma db push --schema=/home/anurag/projects/streamvault/packages/backend/postgres/schema.prisma"
   },
   "keywords": [],
   "author": "",
