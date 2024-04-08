@@ -46,6 +46,9 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24), // Set expiration time same as token
 		HttpOnly: true,
+		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure: true,
 	}
 	http.SetCookie(w, &cookie)
 
@@ -67,11 +70,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(signUpReq.Username)
+	id,err := postgres.CreateUser(signUpReq.Username)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": signUpReq.Username,
+		"userId": id,
+
 	})
-	err := postgres.CreateUser(signUpReq.Username)
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
 		return

@@ -16,7 +16,7 @@ export default function Modal(){
             const formdata=new FormData()
             formdata.append('thumbnail',files?.[0] as Blob)
     
-            const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata)
+            const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata,{withCredentials:true})
         
             const thumbnail="http://localhost:8080/hls/"+res.data;
             console.log(thumbnail,"thumbnail")

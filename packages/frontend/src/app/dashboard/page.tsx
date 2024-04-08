@@ -53,9 +53,10 @@ export default function DashBoard() {
             headers: {
                 "Content-Type": "application/json",
                 // "Authorization": `Bearer ${csrfToken}` ,
-                "Access-Control-Allow-Origin": "*",
+           
             },
             body: JSON.stringify(streamInfoState),
+            credentials: 'include'
 
         });
         const data: {

@@ -18,7 +18,8 @@ export default function Home() {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json"
-                    }
+                    },
+                    credentials: 'include'
                 },
                 );
                 const data = await res.json();
@@ -58,18 +59,26 @@ export default function Home() {
                     thumbnail,
                     description,
                     category,
+                    id,
+                    user
+
                 }: {
                     title: string,
                     thumbnail: string,
                     description: string,
-                    category: string
+                    category: string,
+                    id:string,
+                    user:{
+                        usernae:string,
+                        id:string
+                    }
 
 
                 }, index: number) => (
 
 
                     
-                   <VideoCard title={title} thumbnail={thumbnail}  />
+                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user}  />
                 
 
                 ))

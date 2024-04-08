@@ -87,15 +87,17 @@ func Disconnect() error {
 	return nil
 }
 
-func AddStream(title string, description string, cateory string, thumbnail string) (string, error) {
+func AddStream(title string, description string, cateory string, thumbnail string, userId string) (string, error) {
 
 	ctx := context.Background()
 
-	addedStream, err := client.Stream.CreateOne(
-		db.Stream.Title.Set(title),
-		db.Stream.Thumbnail.Set(thumbnail),
-		db.Stream.Description.Set(description),
-		db.Stream.Category.Set(cateory),
+	addedStream, err := client.Video.CreateOne(
+		db.Video.Title.Set(title),
+		db.Video.Thumbnail.Set(thumbnail),
+		db.Video.Description.Set(description),
+		db.Video.Category.Set(cateory),
+		db.Video.IsStreaming.Set(false),
+		db.Video.User.Link(db.User.ID.Equals(userId)),
 	).Exec(ctx)
 
 	if err != nil {
@@ -103,7 +105,7 @@ func AddStream(title string, description string, cateory string, thumbnail strin
 	}
 
 	result, _ := json.MarshalIndent(addedStream, "", "  ")
-	fmt.Printf("Stream: %s\n", result)
+	fmt.Printf("Video: %s\n", result)
 
 	return string(addedStream.ID), nil
 
@@ -113,7 +115,10 @@ func GetStreams(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 
-	streams, err := client.Stream.FindMany().Exec(ctx)
+	streams, err := client.Video.FindMany(
+	// db.Video.IsStreaming.Equals(true),
+
+	).With(db.Video.User.Fetch()).Exec(ctx)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -127,7 +132,7 @@ func UserExists(userId string) (bool, error) {
 	ctx := context.Background()
 
 	user, err := client.User.FindUnique(
-		db.User.UserID.Equals(userId),
+		db.User.ID.Equals(userId),
 	).Exec(ctx)
 
 	if err != nil {
@@ -141,12 +146,22 @@ func UserExists(userId string) (bool, error) {
 	return true, nil
 }
 
-func CreateUser(userId string) error {
+func CreateUser(username string) (string, error) {
+	ctx := context.Background()
+	val, err := client.User.CreateOne(
+		db.User.Username.Set(username),
+	).Exec(ctx)
+	if err != nil {
+		return "", err
+	}
+	return val.ID, nil
+}
+
+func UpdateStatus(streamId string, status bool) error {
 	ctx := context.Background()
 
-	_, err := client.User.CreateOne(
-		db.User.Username.Set(userId),
-		db.User.UserID.Set(userId),
+	_, err := client.Video.FindUnique(db.Video.ID.Equals(streamId)).Update(
+		db.Video.IsStreaming.Set(status),
 	).Exec(ctx)
 
 	if err != nil {
@@ -154,4 +169,10 @@ func CreateUser(userId string) error {
 	}
 
 	return nil
+}
+
+func GetUserId(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value("userId").(string)
+	w.Write([]byte(userId))
+
 }

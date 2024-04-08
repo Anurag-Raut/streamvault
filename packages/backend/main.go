@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -80,6 +81,8 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
+	postgres.UpdateStatus(streamId, true)
+
 	cmd := exec.Command("ffmpeg",
 		"-re",
 		"-i", "pipe:0",
@@ -106,6 +109,9 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer stdin.Close()
 		defer conn.Close() // Close the WebSocket connection when this goroutine exits
+		defer func() {
+			postgres.UpdateStatus(streamId, false)
+		}()
 		for {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
@@ -138,11 +144,12 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	// get the stream data which is json
 	var streamRequest StreamRequest
 	if err := json.NewDecoder(r.Body).Decode(&streamRequest); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid request bauthMiddleWareody", http.StatusBadRequest)
 		return
 	}
+	userId:=r.Context().Value("userId").(string)
 
-	streamId, err := postgres.AddStream(streamRequest.Title, streamRequest.Description, streamRequest.Category, streamRequest.Thumbnail)
+	streamId, err := postgres.AddStream(streamRequest.Title, streamRequest.Description, streamRequest.Category, streamRequest.Thumbnail,userId)
 	if err != nil {
 		http.Error(w, "Error adding stream", http.StatusInternalServerError)
 		return
@@ -186,7 +193,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func authMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log the incoming request method and URL
@@ -215,15 +221,20 @@ func authMiddleWare(next http.Handler) http.Handler {
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			// Access the username claim
-			if username, exists := claims["username"].(string); exists {
+			if userId, exists := claims["userId"].(string); exists {
 				// Now you have the username
-				fmt.Println("Username:", username)
-				userExists, _ := postgres.UserExists(username)
+				fmt.Println("userId:", userId)
+				userExists, _ := postgres.UserExists(userId)
 
 				if !userExists {
+
 					http.Error(w, "User does not exits ", http.StatusUnauthorized)
 					return
 				}
+
+				ctx := context.WithValue(r.Context(), "userId", userId)
+				r=r.WithContext(ctx)
+
 
 			} else {
 				http.Error(w, "Username claim not found", http.StatusUnauthorized)
@@ -234,6 +245,7 @@ func authMiddleWare(next http.Handler) http.Handler {
 			return
 		}
 
+		
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
@@ -290,14 +302,17 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/", authMiddleWare(http.HandlerFunc(homePage)))
 	mux.HandleFunc("/ws", wsEndpoint)
 	// mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
-	mux.HandleFunc("/startStream", startStream)
-	mux.HandleFunc("/uploadThumbnail", uploadThumbnail)
+	mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
+	mux.Handle("/uploadThumbnail", authMiddleWare(http.HandlerFunc(uploadThumbnail)))
+	mux.Handle("/streams", authMiddleWare(http.HandlerFunc(postgres.GetStreams)))
+	mux.Handle("/getUserId", authMiddleWare(http.HandlerFunc(postgres.GetUserId)))
+	// mux.HandleFunc("/streams", postgres.GetStreams)
+	// mux.HandleFunc("/startStream", startStream)
+	// mux.HandleFunc("/uploadThumbnail", uploadThumbnail)
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)
-	mux.HandleFunc("/streams", postgres.GetStreams)
 	mux.HandleFunc("/signIn", auth.SignIn)
-	mux.Handle("/hls/", http.StripPrefix("/hls/", http.FileServer(http.Dir("/home/anurag/s3mnt"))))
-
+	mux.Handle("/hls/", http.StripPrefix("/hls/", corsFileServer(http.Dir("/home/anurag/s3mnt"))))
 }
 
 func main() {
@@ -323,19 +338,40 @@ func main() {
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// Allow preflight requests to any origin with the specified methods
 		if req.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+			// Handle preflight OPTIONS request
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "*")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.WriteHeader(http.StatusOK)
 			return
 		}
 
 		// Set CORS headers for non-preflight requests
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, req)
+	})
+}
+
+func corsFileServer(fs http.FileSystem) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		fileServer := http.FileServer(fs)
+		fileServer.ServeHTTP(w, r)
 	})
 }

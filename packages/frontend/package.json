@@ -27,6 +27,7 @@
     "react-toastify": "^10.0.5",
     "recoil": "^0.7.7",
     "socket.io-client": "^4.7.5",
+    "video.js": "^8.10.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
