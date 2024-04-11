@@ -5,7 +5,6 @@ import Header from "./_components/header";
 import { RecoilRoot } from "recoil";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Sidebar from "./_components/sidebar/sidebar";
 
 
 

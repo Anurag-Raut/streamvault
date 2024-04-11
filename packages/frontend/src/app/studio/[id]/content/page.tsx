@@ -1,17 +1,26 @@
+
 import Card from "~/app/_components/card";
+import { headers } from "next/headers";
+import { get } from "~/api";
 
-
+type Content={
+    id:string,
+    thumbnail:string,
+    title:string,
+    createdAt:string,
+    likes?:number,
+    comments?:number,
+    description?:string,
+    category:string,
+}
 export default async function Content({ params }: { params: { id: string } }) {
-    const wa= await fetch(`http://localhost:8080/getUserId`,{
-        method:"GET",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        credentials:"include"
-    },)
-    const d=await wa.text()
-    console.log(d,'name ')
-    const data=[1,2,3,4]
+
+    
+
+    
+
+    const data= await get('getContent',{},headers())
+    console.log(data,"name")
     return (
         <div className="w-full h-full p-5">
             <h1 className="text-xl my-3">
@@ -30,6 +39,7 @@ export default async function Content({ params }: { params: { id: string } }) {
                                 </th>
                                 <th>Video</th>
                                 <th>Date</th>
+                                <th>Category</th>
                                 <th>Likes </th>
                                 <th>Comments</th>
 
@@ -38,7 +48,7 @@ export default async function Content({ params }: { params: { id: string } }) {
                         </thead>
                         <tbody>
                             {
-                                data.map((item,index)=>{
+                                data.map((item:Content,index:Number)=>{
                                     return (
                                         <tr className="hover:opacity-50 hover:bg-black">
                                         <th>
@@ -48,21 +58,20 @@ export default async function Content({ params }: { params: { id: string } }) {
                                         </th>
                                         <td>
                                             <div className="flex items-center gap-3">
-                                                <div className="avatar">
-                                                    <div className="mask mask-squircle w-12 h-12">
-                                                        <img src="/tailwind-css-component-profile-2@56w.png" alt="Avatar Tailwind CSS Component" />
-                                                    </div>
+                                                <div>
+                                                    <img src={item.thumbnail} className="w-20 " alt="" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold">Hart Hagerty</div>
-                                                    <div className="text-sm opacity-50">United States</div>
+                                                    <div className="font-bold">{item.title}</div>
+                                                    <div className="text-sm opacity-50">{item.description}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            Zemlak, Daniel and Leannon
-                                            <br />
-                                            <span className="badge badge-ghost badge-sm">Desktop Support Technician</span>
+                                            {new Date(item.createdAt).toDateString()}
+                                        </td>
+                                        <td>
+                                            {item.category}
                                         </td>
                                         <td>Purple</td>
                                         <th>
@@ -76,15 +85,7 @@ export default async function Content({ params }: { params: { id: string } }) {
                            
                         </tbody>
                         {/* foot */}
-                        <tfoot>
-                            <tr>
-                                <th></th>
-                                <th>Name</th>
-                                <th>Job</th>
-                                <th>Favorite Color</th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
+                       
 
                     </table>
                 </div>

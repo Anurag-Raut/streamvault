@@ -151,6 +151,7 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 
 	streamId, err := postgres.AddStream(streamRequest.Title, streamRequest.Description, streamRequest.Category, streamRequest.Thumbnail,userId)
 	if err != nil {
+		fmt.Println("Error adding stream:", err)
 		http.Error(w, "Error adding stream", http.StatusInternalServerError)
 		return
 	}
@@ -160,6 +161,7 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS") // Adjust the allowed methods accordingly
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	
 	w.Write([]byte(responseJson))
 }
 
@@ -197,6 +199,7 @@ func authMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log the incoming request method and URL
 		println("Incoming request:", r.Method, r.URL.Path)
+
 
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
@@ -250,8 +253,72 @@ func authMiddleWare(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func getVideoDataMiddleware (next http.Handler) http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Log the incoming request method and URL
+		println("Incoming request:", r.Method, r.URL.Path)
+
+
+		cookie, err := r.Cookie("jwt")
+		if err != nil {
+			fmt.Println("No token found")
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+		tokenString := cookie.Value
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// You should provide the secret key or the key used for signing the token here
+			return []byte("eat shit"), nil
+		})
+		fmt.Println(token,"token")
+
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		if !token.Valid {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			// Access the username claim
+			if userId, exists := claims["userId"].(string); exists {
+				// Now you have the username
+				fmt.Println("userId:", userId)
+				userExists, _ := postgres.UserExists(userId)
+
+				if !userExists {
+
+					http.Error(w, "User does not exits ", http.StatusUnauthorized)
+					return
+				}
+
+				ctx := context.WithValue(r.Context(), "userId", userId)
+				r=r.WithContext(ctx)
+
+
+			} else {
+				http.Error(w, "Username claim not found", http.StatusUnauthorized)
+				return
+			}
+		} else {
+			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			return
+		}
+
+		
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+
+
+}
 func uploadThumbnail(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseMultipartForm(10 << 20) // 10 MB max
+	err := r.ParseMultipartForm(100 << 20) // 10 MB max
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
@@ -295,8 +362,20 @@ func uploadThumbnail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprint(w, "thumbnail/"+imageName+thumbnailExtension)
+	// fmt.Fprint(w, "thumbnail/"+imageName+thumbnailExtension)
+	var thumbnailPathResponse struct {
+		ThumbnailPath string `json:"thumbnailPath"`
+	}
+	thumbnailPathResponse.ThumbnailPath = "thumbnail/" + imageName + thumbnailExtension
+	responseJson, err := json.Marshal(thumbnailPathResponse)
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+	w.Write(responseJson)
 }
+
+
 
 func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/", authMiddleWare(http.HandlerFunc(homePage)))
@@ -306,6 +385,13 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/uploadThumbnail", authMiddleWare(http.HandlerFunc(uploadThumbnail)))
 	mux.Handle("/streams", authMiddleWare(http.HandlerFunc(postgres.GetStreams)))
 	mux.Handle("/getUserId", authMiddleWare(http.HandlerFunc(postgres.GetUserId)))
+	mux.Handle("/getContent", authMiddleWare(http.HandlerFunc(postgres.GetContent)))
+	mux.Handle("/getVideoData", getVideoDataMiddleware(http.HandlerFunc(postgres.GetVideoData)))
+	mux.Handle("/like",authMiddleWare(http.HandlerFunc(postgres.Like)))
+	mux.Handle("/dislike",authMiddleWare(http.HandlerFunc(postgres.Dislike)))
+	mux.Handle("/removeLike",authMiddleWare(http.HandlerFunc(postgres.RemoveLike)))
+	mux.Handle("/subscribe",authMiddleWare(http.HandlerFunc(postgres.Subscribe)))
+	mux.Handle("/unsubscribe",authMiddleWare(http.HandlerFunc(postgres.Unsubscribe)))
 	// mux.HandleFunc("/streams", postgres.GetStreams)
 	// mux.HandleFunc("/startStream", startStream)
 	// mux.HandleFunc("/uploadThumbnail", uploadThumbnail)

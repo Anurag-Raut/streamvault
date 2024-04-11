@@ -1,6 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation"
+    import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { get } from "~/api";
 
 
 export default function Channel(){
@@ -11,16 +12,21 @@ export default function Channel(){
                 try{
 
                     
-                    const res=await fetch(`http://localhost:8080/getUserId`,{
-                        method:"GET",
-                        headers:{
-                            "Content-Type":"application/json"
-                        },
-                        credentials:"include"
-                    },)
-                    const data=await res.text();
-                    console.log(data,"channel data")
-                    router.replace(`studio/${data}`)
+                    // const res=await fetch(`http://localhost:8080/getUserId`,{
+                    //     method:"GET",
+                    //     headers:{
+                    //         "Content-Type":"application/json"
+                    //     },
+                    //     credentials:"include"
+                    // },)
+                    // const data=await res.text();
+
+                    const data:{
+                        userId:string
+                    
+                    }=await get('getUserId',{})
+                    console.log(data.userId,"channel data")
+                    router.replace(`studio/${data.userId}`)
                     
                 }
                 catch(error){

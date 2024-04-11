@@ -18,12 +18,61 @@ model Video {
   isStreaming Boolean
   user        User     @relation(fields: [userId], references: [id])
   userId      String
+  comments   Comment[]
+  likes     Like[] @relation(name:"likes")
+
+
+
+
 }
 
 model User {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  username     String   @unique
+  videos       Video[]
+  comments     Comment[]
+  likedVideos     Like[] @relation(name:"likedVideos")
+  subscriptions Subscription[] @relation(name:"subscriptions")
+  subscribers   Subscription[] @relation(name:"subscribers")
+
+  
+  
+
+
+}
+
+model Comment {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  username  String   @unique
-  videos    Video[]
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  video     Video    @relation(fields: [videoId], references: [id])
+  videoId   String
+  text      String
+
+
+}
+
+model Like {
+  @@id([videoId, userId])
+
+  user   User   @relation(name: "likedVideos", fields: [userId], references: [id])
+  userId String
+
+  video   Video @relation(name: "likes", fields: [videoId], references: [id])
+  videoId String
+  isLike Boolean
+}
+
+
+model Subscription {
+  @@id([creatorId, subscriberId])
+  subscriberId String
+  subscriber  User @relation(name:"subscribers",fields:[subscriberId],references:[id])
+  creatorId String
+  creator     User @relation(name:"subscriptions",fields:[creatorId],references:[id])
+
+  
 }

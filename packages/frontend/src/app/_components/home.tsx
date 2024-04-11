@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { array } from "zod";
 import VideoCard from "./videoCard";
+import { get } from "~/api";
+
 
 
 
@@ -14,15 +16,19 @@ export default function Home() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const res = await fetch('http://localhost:8080/streams', {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    credentials: 'include'
-                },
-                );
-                const data = await res.json();
+                // const res = await fetch('http://localhost:8080/streams', {
+                //     method: "GET",
+                //     headers: {
+                //         "Content-Type": "application/json"
+                //     },
+                //     credentials: 'include'
+                // },
+                // );
+                // const data = await res.json();
+
+                const data = await get('streams')
+
+
                 console.log(data, "data")
                 setData(data);
                 setLoading(false);
@@ -38,10 +44,6 @@ export default function Home() {
         }
 
         fetchData()
-
-
-
-
 
     }, [])
 
@@ -78,7 +80,7 @@ export default function Home() {
 
 
                     
-                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user}  />
+                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user}   />
                 
 
                 ))

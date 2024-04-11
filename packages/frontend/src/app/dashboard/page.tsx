@@ -13,6 +13,7 @@ import {
 } from 'recoil';
 import Modal from "./_components/modal";
 import { streamInfo } from "~/recoil/atom/streamInfo";
+import { get, post } from "~/api";
 
 
 
@@ -48,20 +49,27 @@ export default function DashBoard() {
         // formData.append("description", streamInfoState.description);
         // formData.append("category", streamInfoState.category);
         // formData.append("thumbnail", streamInfoState.thumbnail);
-        const response = await fetch("http://localhost:8080/startStream", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                // "Authorization": `Bearer ${csrfToken}` ,
+        // const response = await fetch("http://localhost:8080/startStream", {
+        //     method: "POST",
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         // "Authorization": `Bearer ${csrfToken}` ,
            
-            },
-            body: JSON.stringify(streamInfoState),
-            credentials: 'include'
+        //     },
+        //     body: JSON.stringify(streamInfoState),
+        //     credentials: 'include'
 
-        });
-        const data: {
-            streamId: string
-        } = await response.json();
+        // });
+
+
+        // const data: {
+        //     streamId: string
+        // } = await response.json();
+
+        const data:{
+            streamId:string
+        } = await post('startStream',JSON.stringify(streamInfoState))
+        
 
         startStreaming(data.streamId);
 

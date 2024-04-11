@@ -4,6 +4,7 @@ import { constSelector, useRecoilState } from "recoil";
 import { streamInfo } from "~/recoil/atom/streamInfo";
 import {  toast } from 'react-toastify';
 import axios from "axios";
+import { post } from "~/api";
 
 export default function Modal(){
     const [streamInfoState,setStreamInfoState]=useRecoilState(streamInfo)
@@ -16,16 +17,19 @@ export default function Modal(){
             const formdata=new FormData()
             formdata.append('thumbnail',files?.[0] as Blob)
     
-            const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata,{withCredentials:true})
-        
-            const thumbnail="http://localhost:8080/hls/"+res.data;
+            // const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata,{withCredentials:true})
+            const res=await post('uploadThumbnail',formdata,{
+                // "Content-Type":"multipart/form-data"
+            
+            })
+            const thumbnail="http://localhost:8080/hls/"+res;
             console.log(thumbnail,"thumbnail")
             setNewStreamInfo((prev)=>({...prev,thumbnail:thumbnail}))  
             toast.success('Thumbnail uploaded successfully')
         }
         catch(err){
             console.log(err)
-            toast.error('Failed to upload thumbnail')
+            toast.error('err')
         }
 
        

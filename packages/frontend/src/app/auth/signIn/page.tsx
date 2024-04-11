@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { toast } from "react-toastify"
+import { post } from "~/api"
 
 
 
@@ -11,16 +12,18 @@ export default function SignInPage() {
         try {
             console.log("asd")
 
-            const res = await fetch('http://localhost:8080/signup', {
-                method: 'POST',
+            // const res = await fetch('http://localhost:8080/signup', {
+            //     method: 'POST',
                
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                }),
-                credentials:'include'
-            })
-            const response = await res.text()
+            //     body: JSON.stringify({
+            //         username: username,
+            //         password: password
+            //     }),
+            //     credentials:'include'
+            // })
+            // const response = await res.text()
+
+            const response=await post('signup',JSON.stringify({username,password}))
             // toast.success(response)
             console.log(response,"ressssss")
 
