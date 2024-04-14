@@ -9,10 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var pool *pgxpool.Pool 
+var pool *pgxpool.Pool
 
 func Connect() {
 	var err error
@@ -136,22 +137,71 @@ func UpdateStatus(streamId string, status bool) error {
 }
 
 func GetUserId(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value("userId").(string)
-	fmt.Println(userId, "user id getuserId")
-
+	var userIdd *string
 	var userIdResponse struct {
-		UserId string `json:"userId"`
+		UserId *string `json:"userId"`
 	}
 
-	userIdResponse.UserId = userId
-	response, err := json.MarshalIndent(userIdResponse, "", "  ")
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		userIdResponse.UserId = userIdd
+		response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+		w.Write(response)
+		// http.Error(w, "No token found", http.StatusUnauthorized)
+		return
+	}
+	tokenString := cookie.Value
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// You should provide the secret key or the key used for signing the token here
+		return []byte("eat shit"), nil
+	})
 
 	if err != nil {
-		sendError(w, "Error decoding userId")
+		userIdResponse.UserId = userIdd
+		response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+		w.Write(response)
 		return
 	}
 
-	w.Write(response)
+	if !token.Valid {
+		userIdResponse.UserId = userIdd
+		response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+		w.Write(response)
+		return
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		// Access the username claim
+		if userId, exists := claims["userId"].(string); exists {
+			// Now you have the username
+			fmt.Println("userId:", userId)
+			userExists, _ := UserExists(userId)
+
+			if !userExists {
+				userIdResponse.UserId = userIdd
+				response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+				w.Write(response)
+				return
+			}
+
+			userIdd = &userId
+			userIdResponse.UserId = userIdd
+			response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+			w.Write(response)
+
+		} else {
+			userIdResponse.UserId = userIdd
+			response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+			w.Write(response)
+			return
+		}
+	} else {
+		userIdResponse.UserId = userIdd
+		response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+		w.Write(response)
+		return
+	}
+
 }
 
 func GetVideoData(w http.ResponseWriter, r *http.Request) {
@@ -475,40 +525,36 @@ func Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-
 func GetContent(w http.ResponseWriter, r *http.Request) {
 	var userId = r.Context().Value("userId").(string)
-	var pageSize =10
-	var pageNumber =1
+	var pageSize = 10
+	var pageNumber = 1
 	var err error = nil
-	pageSize ,err = strconv.Atoi(r.URL.Query().Get("pageSize"))
+	pageSize, err = strconv.Atoi(r.URL.Query().Get("pageSize"))
 	if err != nil {
 		fmt.Println(err)
 		pageSize = 10
 	}
 
-	
-	pageNumber ,err = strconv.Atoi(r.URL.Query().Get("pageNumber"))
+	pageNumber, err = strconv.Atoi(r.URL.Query().Get("pageNumber"))
 	if err != nil {
 		fmt.Println(err)
 		pageNumber = 1
 	}
-	
-	fmt.Println(pageSize,pageNumber,"pageSize,pageNumber")
-	
-	
-	type Content struct {
-		Id          string `json:"id"`
-		Thumbnail   string `json:"thumbnail"`
-		Title       string `json:"title"`
-		CreatedAt   time.Time `json:"createdAt"`
-		Likes       int    `json:"likes"`
-		Comments    int    `json:"comments"`
-		Description string `json:"description"`
-		Category    string `json:"category"`
-		Dislikes    int    `json:"dislikes"`
-		Subscribers int    `json:"subscribers"`
 
+	fmt.Println(pageSize, pageNumber, "pageSize,pageNumber")
+
+	type Content struct {
+		Id          string    `json:"id"`
+		Thumbnail   string    `json:"thumbnail"`
+		Title       string    `json:"title"`
+		CreatedAt   time.Time `json:"createdAt"`
+		Likes       int       `json:"likes"`
+		Comments    int       `json:"comments"`
+		Description string    `json:"description"`
+		Category    string    `json:"category"`
+		Dislikes    int       `json:"dislikes"`
+		Subscribers int       `json:"subscribers"`
 	}
 
 	ctx := context.Background()
@@ -531,19 +577,18 @@ func GetContent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var response []Content;
+	var response []Content
 	for rows.Next() {
 		// var id, title, description, category, thumbnail string
 		// var likes, comments, dislikes, subscribers int
 		// var createdAt time.Time
-		var videoData Content;
+		var videoData Content
 		err = rows.Scan(&videoData.Id, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.CreatedAt, &videoData.Likes, &videoData.Dislikes, &videoData.Subscribers, &videoData.Comments)
 		if err != nil {
 			sendError(w, err.Error())
 			return
 		}
 		response = append(response, videoData)
-	
 
 	}
 	if err = rows.Err(); err != nil {
@@ -553,5 +598,94 @@ func GetContent(w http.ResponseWriter, r *http.Request) {
 
 	result, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(result)
+
+}
+
+func GetChats(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	var request struct {
+		VideoId string `json:"videoId"`
+	}
+	err:=json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		fmt.Println("erorr decoding",err)
+		sendError(w, err.Error())
+		return
+	}
+
+	rows, err := pool.Query(ctx,
+		`SELECT c."userId",c.text,c."createdAt"
+		 FROM "Comment" c
+		 Where c."videoId" = $1
+		 ORDER BY c."createdAt" DESC
+		`,request.VideoId)
+	if err != nil {
+		sendError(w, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	type Chat struct {
+		UserId    string    `json:"userId"`
+		Message   string    `json:"message"`
+		CreatedAt time.Time `json:"createdAt"`
+
+	}
+	chats := make([]Chat, 0)
+	for rows.Next() {
+		var chat Chat
+		err = rows.Scan( &chat.UserId, &chat.Message, &chat.CreatedAt)
+		if err != nil {
+			sendError(w, err.Error())
+			return
+		}
+		chats = append(chats, chat)
+	}
+	if err = rows.Err(); err != nil {
+		sendError(w, err.Error())
+		return
+	}
+
+	result, _ := json.MarshalIndent(chats, "", "  ")
+	w.Write(result)
+}
+
+
+func PostChat( videoId string,  userId string , message string ) error {
+	ctx := context.Background()
+	_,err := pool.Exec(ctx,
+		`INSERT INTO "Comment" ("videoId", "userId", "text")
+		 VALUES ($1, $2, $3)`,
+		videoId, userId, message)
+	if err != nil {
+		fmt.Println(err,"reallly")
+		return  err
+	}
+	return nil
+
+
+}
+
+type UserDetails struct {
+	Username string `json:"username"`
+	ProfileImage *string `json:"profileImage"`
+	UserId string `json:"userId"`
+}
+func GetUserDetailsFromDatabase(userId string) (UserDetails,error){
+
+	var userDetails UserDetails
+
+	ctx := context.Background()
+	err := pool.QueryRow(ctx,
+		`SELECT username, "profileImage", id
+		 FROM "User"
+		 WHERE id = $1`,
+		userId).Scan(&userDetails.Username, &userDetails.ProfileImage, &userDetails.UserId)
+	if err != nil {
+		fmt.Println(err)
+		return userDetails,err
+	}
+	return userDetails,nil
+
 
 }

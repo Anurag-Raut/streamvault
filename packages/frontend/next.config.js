@@ -8,7 +8,10 @@ await import("./src/env.js");
 const config = {
     eslint:{
         ignoreDuringBuilds: true,
-    }
+        
+
+    },
+    reactStrictMode: false
 };
 
 export default config;

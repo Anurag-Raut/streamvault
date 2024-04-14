@@ -11,13 +11,13 @@ export default function Watch({ params }: { params: { videoId: string } }) {
   const playerRef = React.useRef<Player | null>(null);
 
   const [data, setData] = React.useState<{
-    title: string|null;
-    description: string|null;
-    category: string|null;
-    likes: number|null;
-    comments: number|null;
-    createdAt: string|null;
-  
+    title: string | null;
+    description: string | null;
+    category: string | null;
+    likes: number | null;
+    comments: number | null;
+    createdAt: string | null;
+
   }>({
     title: null,
     description: null,
@@ -49,7 +49,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
   //           },
   //           body:JSON.stringify(params.videoId),
   //           credentials:'include'
-          
+
   //       })
   //       const data=await response.json()
   //       console.log(data)
@@ -73,18 +73,9 @@ export default function Watch({ params }: { params: { videoId: string } }) {
   };
 
   return (
-    // <div className='w-full h-full p-9 '>
-    //   <div className='w-full   h-full' >
-        <div className='w-[55%] rounded-xl overflow-hidden'>
-          <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
-        </div>
-      //   <div className='mt-3'>
-      //       <div className='text-lg '>{data.title}</div>
 
-      //   </div>
-      // </div>
-
-
-    // </div>
+    <div className='w-[700px] min-h-[70%] bg-card rounded-xl overflow-hidden'>
+      <VideoJS options={videoJsOptions}  onReady={handlePlayerReady} />
+    </div>
   );
 }

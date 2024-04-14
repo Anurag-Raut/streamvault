@@ -4,6 +4,7 @@ import LikeComponent from "../_components/likeComponent"
 import { headers } from "next/headers"
 import { LikeState } from "../types"
 import ChannelInfo from "../_components/channelInfo"
+import Chat from "~/app/_components/chat"
 
 
 
@@ -38,8 +39,8 @@ export default async function Watch({ params, children }: { params: { videoId: s
 
     console.log(data, "name")
     return (
-        <div className='w-full h-full p-9 '>
-            <div className='w-full   h-full' >
+        <div className='w-full h-full p-9 flex justify-between'>
+            <div className='   h-full ' >
                 {children}
                 <div className='mt-3 w-full'>
                     <div className='text-3xl '>{data.title}</div>
@@ -51,6 +52,10 @@ export default async function Watch({ params, children }: { params: { videoId: s
 
 
                 </div>
+            </div>
+            <div className=" w-[500px]">
+                <Chat streamId={params.videoId} />
+
             </div>
 
 

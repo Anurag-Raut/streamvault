@@ -31,7 +31,7 @@ export default function Sidebar({id}:{id:string}) {
     ]
 
     return (
-        <div className="w-[20%] flex flex-col  h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primaryGrad2   to-primaryGrad1 border-r-2 border-border p-6 " >
+        <div className="w-[20%] flex flex-col  h-full bg-primaryGrad1   p-6 " >
             <div className="my-5 mb-10">
                 <img src="/logo.png" className="w-10 h-10" />   
             </div>

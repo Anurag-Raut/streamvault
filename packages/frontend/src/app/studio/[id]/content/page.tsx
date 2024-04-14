@@ -73,9 +73,9 @@ export default async function Content({ params }: { params: { id: string } }) {
                                         <td>
                                             {item.category}
                                         </td>
-                                        <td>Purple</td>
+                                        <td>{item.likes}</td>
                                         <th>
-                                            <button className="btn btn-ghost btn-xs">details</button>
+                                            <button className="btn btn-ghost btn-xs">{item.comments}</button>
                                         </th>
                                     </tr>
                                     )

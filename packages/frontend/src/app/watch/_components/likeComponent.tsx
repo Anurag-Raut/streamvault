@@ -33,8 +33,8 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
             else {
                 const res = await post('like', JSON.stringify(videoId))
                 setLikeCount(likeCount + 1)
-                if(curretnLikeState===LikeState.Disliked){
-                    setDislikeCount(dislikeCount-1)
+                if (curretnLikeState === LikeState.Disliked) {
+                    setDislikeCount(dislikeCount - 1)
                 }
                 setCurretnLikeState(LikeState.Liked)
             }
@@ -53,12 +53,11 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
                 setCurretnLikeState(LikeState.Neutral)
 
             }
-
             else {
                 const res = await post('dislike', JSON.stringify(videoId))
                 setDislikeCount(dislikeCount + 1)
-                if(curretnLikeState===LikeState.Liked){
-                    setLikeCount(likeCount-1)
+                if (curretnLikeState === LikeState.Liked) {
+                    setLikeCount(likeCount - 1)
                 }
                 setCurretnLikeState(LikeState.Disliked)
             }
@@ -74,7 +73,7 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
             <button onClick={like} className=" flex  ">
                 {
                     curretnLikeState === LikeState.Liked ?
-                        <AiFillLike size={25} className="mx-2" />
+                        <AiFillLike size={25} className="mx-2 fill-purple " />
                         :
                         <AiOutlineLike size={25} className="mx-2" />
 
@@ -86,9 +85,9 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
             <button onClick={dislike} className="flex" >
                 {
                     curretnLikeState === LikeState.Disliked ?
-                        <AiFillDislike size={25} className="mx-2" />
+                        <AiFillDislike size={25} className="mx-2 fill-red" />
                         :
-                        <AiOutlineDislike size={25} className="mx-2" />
+                        <AiOutlineDislike size={25} className="mx-2 " />
                 }
                 {dislikeCount}
             </button>

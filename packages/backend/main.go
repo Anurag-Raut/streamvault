@@ -12,6 +12,7 @@ import (
 
 	"os/exec"
 	"streamvault/auth"
+	"streamvault/chat"
 	"streamvault/postgres"
 
 	"os"
@@ -383,8 +384,8 @@ func setupRoutes(mux *http.ServeMux) {
 	// mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
 	mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
 	mux.Handle("/uploadThumbnail", authMiddleWare(http.HandlerFunc(uploadThumbnail)))
-	mux.Handle("/streams", authMiddleWare(http.HandlerFunc(postgres.GetStreams)))
-	mux.Handle("/getUserId", authMiddleWare(http.HandlerFunc(postgres.GetUserId)))
+	mux.Handle("/streams", (http.HandlerFunc(postgres.GetStreams)))
+	mux.Handle("/getUserId", (http.HandlerFunc(postgres.GetUserId)))
 	mux.Handle("/getContent", authMiddleWare(http.HandlerFunc(postgres.GetContent)))
 	mux.Handle("/getVideoData", getVideoDataMiddleware(http.HandlerFunc(postgres.GetVideoData)))
 	mux.Handle("/like",authMiddleWare(http.HandlerFunc(postgres.Like)))
@@ -392,6 +393,10 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/removeLike",authMiddleWare(http.HandlerFunc(postgres.RemoveLike)))
 	mux.Handle("/subscribe",authMiddleWare(http.HandlerFunc(postgres.Subscribe)))
 	mux.Handle("/unsubscribe",authMiddleWare(http.HandlerFunc(postgres.Unsubscribe)))
+	mux.Handle("/getUserDetails",http.HandlerFunc(auth.GetUserDetails))
+	mux.HandleFunc("/getChats",postgres.GetChats)
+	mux.Handle("/chat",(http.HandlerFunc(chat.Chat)))
+
 	// mux.HandleFunc("/streams", postgres.GetStreams)
 	// mux.HandleFunc("/startStream", startStream)
 	// mux.HandleFunc("/uploadThumbnail", uploadThumbnail)
@@ -406,11 +411,12 @@ func main() {
 
 	postgres.Connect()
 	defer postgres.Disconnect()
+	go chat.HandleMessages()
+
 	setupRoutes(mux)
 	fmt.Println("Hello, World!")
 
 	handler := corsMiddleware(mux)
-
 	// conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	// failOnError(err, "Failed to connect to RabbitMQ")
 

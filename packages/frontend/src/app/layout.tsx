@@ -1,4 +1,3 @@
-"use client";
 import "~/styles/globals.css";
 import { Inter } from "next/font/google";
 import Header from "./_components/header";
@@ -36,11 +35,11 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable}`}>
         <main className="flex flex-row  h-screen items-center justify-center text-white pt-[80px] bg-background   ">
 
-            <RecoilRoot>
+            {/* <RecoilRoot> */}
               <Header />
          
               {children}
-            </RecoilRoot>
+            {/* </RecoilRoot> */}
           <ToastContainer />
 
         </main>

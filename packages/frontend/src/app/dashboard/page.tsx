@@ -14,6 +14,7 @@ import {
 import Modal from "./_components/modal";
 import { streamInfo } from "~/recoil/atom/streamInfo";
 import { get, post } from "~/api";
+import Chat from "../_components/chat";
 
 
 
@@ -42,35 +43,13 @@ export default function DashBoard() {
     const [streamInfoState, _] = useRecoilState(streamInfo)
 
     const stream = async () => {
-        // const csrfToken = await getCsrfToken();
-        // console.log(csrfToken, "tokennn ")
-        // const formData = new FormData();
-        // formData.append("title", streamInfoState.title);
-        // formData.append("description", streamInfoState.description);
-        // formData.append("category", streamInfoState.category);
-        // formData.append("thumbnail", streamInfoState.thumbnail);
-        // const response = await fetch("http://localhost:8080/startStream", {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         // "Authorization": `Bearer ${csrfToken}` ,
-           
-        //     },
-        //     body: JSON.stringify(streamInfoState),
-        //     credentials: 'include'
-
-        // });
 
 
-        // const data: {
-        //     streamId: string
-        // } = await response.json();
+        const data: {
+            streamId: string
+        } = await post('startStream', JSON.stringify(streamInfoState))
 
-        const data:{
-            streamId:string
-        } = await post('startStream',JSON.stringify(streamInfoState))
-        
-
+        setStreamId(data.streamId)
         startStreaming(data.streamId);
 
 
@@ -80,17 +59,27 @@ export default function DashBoard() {
 
     return (
 
-        <div className="w-[100%] h-screen p-5  ">
-            <Card classname={"flex flex-row w-[100%]"} >
-                <VideoComponent mediaRecorderRef={mediaRecorderRef} />
-                <InfoComponent />
-            </Card>
+        <div className="w-[100%] h-full p-5  flex ">
+            <div className="flex h-full w-full ">
+                <div className="w-full ">
+                    <Card classname={"flex flex-row w-[100%] h-fit"} >
+                        <VideoComponent mediaRecorderRef={mediaRecorderRef} />
+                        <InfoComponent />
+                    </Card>
 
 
-            <div className="mt-3">
-                <button onClick={stream} className="btn btn-primary">Stream</button>
+                    <div className="mt-3">
+                        <button onClick={stream} className="btn btn-primary">Stream</button>
+                    </div>
+                </div>
+
+
+                <div className="w-[500px] h-full " >
+                    <Chat streamId={streamId} />
+                </div>
             </div>
             <Modal />
+
         </div>
     );
 }

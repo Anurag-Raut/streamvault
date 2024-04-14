@@ -10,7 +10,7 @@ export default function Card({children,classname}:{
 
 }){
     return (
-        <div  className={`bg-[#2B2A4C] p-6 rounded-lg mb-5 ${classname} items-center `}>
+        <div  className={`bg-card p-6 rounded-lg mb-5 ${classname} items-center `}>
             {children}
         </div>
     )

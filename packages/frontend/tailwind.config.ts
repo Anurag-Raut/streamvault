@@ -12,14 +12,15 @@ export default {
 
       colors: {
         primary: "#311744",
-        primaryGrad1: "#22192e",
-        primaryGrad2: "#37174c",
+        primaryGrad1: "#201f24",
+        primaryGrad2: "#201f24",
         secondary: "#FFD700",
         red: "#FF0000",
         black: "#000000",
-        background: "#171028",
+        background: "#121212",
         border: "#462c6e",
         purple: "#cc00ff",
+        card:"#17191a"
 
 
 
