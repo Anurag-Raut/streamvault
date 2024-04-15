@@ -21,6 +21,7 @@ type Video = {
     user: {
         id: string,
         username: string,
+        profileImage: string
 
     }
     likeState: LikeState,
@@ -45,7 +46,7 @@ export default async function Watch({ params, children }: { params: { videoId: s
                 <div className='mt-3 w-full'>
                     <div className='text-3xl '>{data.title}</div>
                     <div className="flex w-full m-3 items-center">
-                        <ChannelInfo isSubscribed={data.isSubscribed} noOfSubscribers={data.subscribers} creatorId={data.user.id} channelName={data.user.username} />
+                        <ChannelInfo profileImage={data.user.profileImage} isSubscribed={data.isSubscribed} noOfSubscribers={data.subscribers} creatorId={data.user.id} channelName={data.user.username} />
                         <LikeComponent videoId={params.videoId} likes={data.likes} dislikes={data.dislikes} likeState={data.likeState} />
                     </div>
 

@@ -4,12 +4,14 @@ import React, { useState } from "react"
 import VideoJS from "../watch/_components/player"
 import Player from "video.js/dist/types/player"
 import videojs from "video.js"
+import Link from "next/link"
 
 
 export default function VideoCard({ title, thumbnail, category, id ,user}: {
     title: string,
     thumbnail: string,
     category?: string,
+    src:string,
     id: string,
     user:{
         username:string,
@@ -20,10 +22,7 @@ export default function VideoCard({ title, thumbnail, category, id ,user}: {
     const [hovering, setHovering] = useState(false)
     const router = useRouter()
 
-    function handleVideoClick() {
-
-        router.push(`/watch/${id}`)
-    }
+  
 
     const playerRef = React.useRef<Player | null>(null);
 
@@ -55,7 +54,7 @@ export default function VideoCard({ title, thumbnail, category, id ,user}: {
     };
 
     return (
-        <div onClick={handleVideoClick} onMouseEnter={() => { setHovering(true) }} onMouseLeave={() => { setHovering(false) }} className="h-[200px] ">
+        <Link href={`/watch/${id}`} onMouseEnter={() => { setHovering(true) }} onMouseLeave={() => { setHovering(false) }} className="h-[200px] ">
             {
                 !hovering ?
 
@@ -73,6 +72,6 @@ export default function VideoCard({ title, thumbnail, category, id ,user}: {
             <p> {user.username}</p>
 
 
-        </div>
+        </Link>
     )
 }

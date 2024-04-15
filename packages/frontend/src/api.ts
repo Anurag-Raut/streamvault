@@ -9,7 +9,8 @@ export const post = async (url:string,data:any,headers={},serverHeaders:any=null
         
         },
         body: data,
-        credentials:'include'
+        credentials:'include',
+        cache:"no-cache"
 
     })
     return await res.json()
@@ -23,7 +24,8 @@ export const get = async (url:string,headers={},serverHeaders:any=null)=>{
             ...headers
         
         },
-        credentials:'include'
+        credentials:'include',
+        cache:"no-cache"
     })
     return await res.json()
 }

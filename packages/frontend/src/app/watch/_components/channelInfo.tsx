@@ -2,9 +2,10 @@
 import { useState } from "react"
 import { toast } from "react-toastify";
 import { post } from "~/api";
+import Avatar from "~/app/_components/avatar";
 
 
-export default function ChannelInfo({ noOfSubscribers, channelName ,isSubscribed,creatorId}: { noOfSubscribers: number, channelName: string,isSubscribed:boolean,creatorId:string }) {
+export default function ChannelInfo({ noOfSubscribers, channelName ,isSubscribed,creatorId,profileImage}: { noOfSubscribers: number, channelName: string,isSubscribed:boolean,creatorId:string ,profileImage:string}) {
     const [subscribed, setSubscribed] = useState(isSubscribed)
     const [subscribers,setSubscribers]=useState<number>(noOfSubscribers)
 
@@ -28,8 +29,10 @@ export default function ChannelInfo({ noOfSubscribers, channelName ,isSubscribed
     }
 
     return (
-        <div className="flex flex-row">
-
+        <div className="flex flex-row items-center">
+            <div className="mr-2">
+                <Avatar size={38} name={channelName} src={profileImage} />
+            </div>
             <div className="text-lg m-3">{channelName}
                 <div className="text-md opacity-80">
                     {subscribers}

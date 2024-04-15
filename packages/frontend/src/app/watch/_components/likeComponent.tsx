@@ -73,7 +73,7 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
             <button onClick={like} className=" flex  ">
                 {
                     curretnLikeState === LikeState.Liked ?
-                        <AiFillLike size={25} className="mx-2 fill-purple " />
+                        <AiFillLike size={25} className="mx-2 fill-primary " />
                         :
                         <AiOutlineLike size={25} className="mx-2" />
 

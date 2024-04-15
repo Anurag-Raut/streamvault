@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"streamvault/postgres"
 	"streamvault/utils"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -67,6 +68,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&signUpReq); err != nil {
 		http.Error(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
+		return
+	}
+	if strings.Contains(signUpReq.Username, " ") {
+		http.Error(w, "Username cannot contain spaces", http.StatusBadRequest)
 		return
 	}
 

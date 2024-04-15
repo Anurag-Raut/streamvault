@@ -3,7 +3,7 @@ import Card from "~/app/_components/card";
 import { headers } from "next/headers";
 import { get } from "~/api";
 
-type Content={
+export type Content={
     id:string,
     thumbnail:string,
     title:string,
@@ -22,12 +22,12 @@ export default async function Content({ params }: { params: { id: string } }) {
     const data= await get('getContent',{},headers())
     console.log(data,"name")
     return (
-        <div className="w-full h-full p-5">
+        <div className="w-full h-[90%] p-5">
             <h1 className="text-xl my-3">
                 Channel Content
             </h1>
-            <Card>
-                <div className="overflow-x-auto">
+            <Card classname={"h-[90%]"}>
+                <div className="overflow-x-auto overflow-y-auto h-full ">
                     <table className="table">
                         {/* head */}
                         <thead>
@@ -48,7 +48,7 @@ export default async function Content({ params }: { params: { id: string } }) {
                         </thead>
                         <tbody>
                             {
-                                data.map((item:Content,index:Number)=>{
+                                data?.map((item:Content,index:Number)=>{
                                     return (
                                         <tr className="hover:opacity-50 hover:bg-black">
                                         <th>

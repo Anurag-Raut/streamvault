@@ -14,6 +14,7 @@ import (
 	"streamvault/auth"
 	"streamvault/chat"
 	"streamvault/postgres"
+	"streamvault/utils"
 
 	"os"
 
@@ -106,6 +107,12 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error starting command:", err)
 		return
 	}
+
+	defer func() {
+        conn.Close()
+        postgres.UpdateStatus(streamId, false)
+        fmt.Println("WebSocket connection closed")
+    }()
 
 	go func() {
 		defer stdin.Close()
@@ -204,23 +211,23 @@ func authMiddleWare(next http.Handler) http.Handler {
 
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
-			http.Error(w, "No token found", http.StatusUnauthorized)
+			utils.SendError(w,"No token found",http.StatusUnauthorized)
 			return
 		}
 		tokenString := cookie.Value
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// You should provide the secret key or the key used for signing the token here
 			return []byte("eat shit"), nil
 		})
 
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			// http.Error(w, "Invalid token", http.StatusUnauthorized)
+			utils.SendError(w,"Invalid token",http.StatusUnauthorized)
 			return
 		}
 
 		if !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			utils.SendError(w,"Invalid Token",http.StatusUnauthorized)
 			return
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
@@ -231,8 +238,7 @@ func authMiddleWare(next http.Handler) http.Handler {
 				userExists, _ := postgres.UserExists(userId)
 
 				if !userExists {
-
-					http.Error(w, "User does not exits ", http.StatusUnauthorized)
+					utils.SendError(w,"User does not exits",http.StatusUnsupportedMediaType)
 					return
 				}
 
@@ -241,11 +247,13 @@ func authMiddleWare(next http.Handler) http.Handler {
 
 
 			} else {
-				http.Error(w, "Username claim not found", http.StatusUnauthorized)
+				// http.Error(w, "Username claim not found", http.StatusUnauthorized)
+				utils.SendError(w,"UserId clain not found",http.StatusUnauthorized)
 				return
 			}
 		} else {
-			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			// http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			utils.SendError(w,"Invalid token claims",http.StatusUnauthorized)
 			return
 		}
 
@@ -384,7 +392,7 @@ func setupRoutes(mux *http.ServeMux) {
 	// mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
 	mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
 	mux.Handle("/uploadThumbnail", authMiddleWare(http.HandlerFunc(uploadThumbnail)))
-	mux.Handle("/streams", (http.HandlerFunc(postgres.GetStreams)))
+	mux.Handle("/getVideos", (http.HandlerFunc(postgres.GetStreams)))
 	mux.Handle("/getUserId", (http.HandlerFunc(postgres.GetUserId)))
 	mux.Handle("/getContent", authMiddleWare(http.HandlerFunc(postgres.GetContent)))
 	mux.Handle("/getVideoData", getVideoDataMiddleware(http.HandlerFunc(postgres.GetVideoData)))
@@ -393,13 +401,13 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/removeLike",authMiddleWare(http.HandlerFunc(postgres.RemoveLike)))
 	mux.Handle("/subscribe",authMiddleWare(http.HandlerFunc(postgres.Subscribe)))
 	mux.Handle("/unsubscribe",authMiddleWare(http.HandlerFunc(postgres.Unsubscribe)))
-	mux.Handle("/getUserDetails",http.HandlerFunc(auth.GetUserDetails))
+	mux.Handle("/getLoggedUserDetails",http.HandlerFunc(auth.GetUserDetails))
 	mux.HandleFunc("/getChats",postgres.GetChats)
 	mux.Handle("/chat",(http.HandlerFunc(chat.Chat)))
+	mux.Handle("/getCommmentsForChannel",authMiddleWare(http.HandlerFunc(postgres.GetCommmentsForCreator)))
+	mux.Handle("/getUserDetailsByUsername",(http.HandlerFunc(postgres.GetUserDetailsByUsername)))
+	mux.Handle("/getChannelSummary",authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
 
-	// mux.HandleFunc("/streams", postgres.GetStreams)
-	// mux.HandleFunc("/startStream", startStream)
-	// mux.HandleFunc("/uploadThumbnail", uploadThumbnail)
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)
 	mux.HandleFunc("/signIn", auth.SignIn)

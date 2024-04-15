@@ -10,7 +10,7 @@ export default function SignInPage() {
     const [password, setPassword] = useState('')
     async function handleSignIn() {
         try {
-            console.log("asd")
+            // console.log("asd")
 
             // const res = await fetch('http://localhost:8080/signup', {
             //     method: 'POST',

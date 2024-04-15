@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import Header from "./_components/header";
 import { RecoilRoot } from "recoil";
 import { ToastContainer, toast } from 'react-toastify';
+import NextTopLoader from 'nextjs-toploader';
+
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -33,14 +35,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
+        <NextTopLoader color="#cc00ff"  />
         <main className="flex flex-row  h-screen items-center justify-center text-white pt-[80px] bg-background   ">
 
-            {/* <RecoilRoot> */}
-              <Header />
-         
-              {children}
-            {/* </RecoilRoot> */}
+          {/* <RecoilRoot> */}
+
+          <Header />
+
+          {children}
+          {/* </RecoilRoot> */}
           <ToastContainer />
+
+
+
+
+
 
         </main>
       </body>

@@ -26,7 +26,7 @@ export default function Home() {
                 // );
                 // const data = await res.json();
 
-                const data = await get('streams')
+                const data = await get('getVideos')
 
 
                 console.log(data, "data")
@@ -62,7 +62,8 @@ export default function Home() {
                     description,
                     category,
                     id,
-                    user
+                    user,
+                    src
 
                 }: {
                     title: string,
@@ -70,8 +71,9 @@ export default function Home() {
                     description: string,
                     category: string,
                     id:string,
+                    src:string,
                     user:{
-                        usernae:string,
+                        username:string,
                         id:string
                     }
 
@@ -80,7 +82,7 @@ export default function Home() {
 
 
                     
-                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user}   />
+                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user} src={src}   />
                 
 
                 ))

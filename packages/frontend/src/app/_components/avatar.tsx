@@ -1,8 +1,12 @@
 
 
-export default function Avatar({ src, size, name, }: { src: string; size: number, name: string }) {
+export default function Avatar({ src, size=50, 
+    name
 
+}: { src: string; size: number, name: string }) {
 
+    let s =size.toString()
+    console.log(`w-[${s}px]`)
     const hRange:[number,number] = [0, 360];
     const sRange:[number,number]  = [50, 60];
     const lRange:[number,number]  = [45, 55];
@@ -32,14 +36,22 @@ export default function Avatar({ src, size, name, }: { src: string; size: number
     }
 console.log(generateHSL(name))
     return (
-        <div className={` w-${10} h-${10} rounded-full flex justify-center items-center`}>
+        <div style={
+            {
+                width: `${size}px`,
+                height: `${size}px`
+            }
+        
+        }  className={` rounded-full flex justify-center items-center pointer curcor`}>
             {src ?
-                <div className="w-full rounded-full">
+                <div className="w-full h-full rounded-full">
                     <img src={src} />
                 </div>
                 :
-                <div className={` w-full h-full flex rounded-full justify-center items-center self-center text-white font-bold text-xl `} style={{
-                    backgroundColor: generateHSL(name)
+                <div className={` w-full h-full flex rounded-full justify-center items-center self-center text-white font-bold `} style={{
+                    backgroundColor: generateHSL(name),
+                    fontSize: `${size / 1.8}px`
+
                 }}>
                     {getFirstLetter(name)}
                 </div>
