@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -116,17 +117,31 @@ func UserExists(userId string) (bool, error) {
 	return count > 0, nil
 }
 
-func CreateUser(username string) (string, error) {
+func CreateUser(username string,profileImage *string) (string, error) {
 	ctx := context.Background()
 	var id string
+
+	// Check if the user already exists
 	err := pool.QueryRow(ctx,
-		`INSERT INTO "User" (username)
-		 VALUES ($1)
-		 RETURNING "id"`,
+		`SELECT "id" FROM "User" WHERE username = $1`,
 		username).Scan(&id)
-	if err != nil {
+
+	if err == pgx.ErrNoRows { // User doesn't exist, perform insert
+	fmt.Println("User doesn't exist")
+		err2:= pool.QueryRow(ctx,
+			`INSERT INTO "User" (username,"profileImage")
+             VALUES ($1,$2)
+             RETURNING "id"`,
+			username,profileImage).Scan(&id)
+		if err2 != nil {
+			fmt.Println(err2,"Error inserting user")
+			return "", err
+		}
+	} else if err != nil { // Other error occurred
+		fmt.Println(err,"Other error")
 		return "", err
 	}
+
 	return id, nil
 }
 
@@ -244,8 +259,8 @@ func GetVideoData(w http.ResponseWriter, r *http.Request) {
 		Thumbnail   string `json:"thumbnail"`
 		IsStreaming bool   `json:"isStreaming"`
 		User        struct {
-			Username string `json:"username"`
-			ID       string `json:"id"`
+			Username     string  `json:"username"`
+			ID           string  `json:"id"`
 			ProfileImage *string `json:"profileImage"`
 		} `json:"user"`
 	}
@@ -256,7 +271,7 @@ func GetVideoData(w http.ResponseWriter, r *http.Request) {
 		 FROM "Video" v
 		 JOIN "User" u ON v."userId" = u."id"
 		 WHERE v.id = $1`,
-		videoId).Scan(&videoData.ID, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.IsStreaming, &videoData.User.Username, &videoData.User.ID,&videoData.User.ProfileImage)
+		videoId).Scan(&videoData.ID, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.IsStreaming, &videoData.User.Username, &videoData.User.ID, &videoData.User.ProfileImage)
 	if err != nil {
 		fmt.Println(err)
 		sendError(w, "Error fetching video data")

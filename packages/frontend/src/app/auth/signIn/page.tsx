@@ -1,20 +1,33 @@
 "use client"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
-import { post } from "~/api"
+import { get, post } from "~/api"
 
 
 
 export default function SignInPage() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    useEffect(() => {
+        const code = searchParams.get('code')
+        async function loginWithGoogle() {
+            await post("loginWithGoogle", JSON.stringify(code))
+            router.replace("http://localhost:3000/")
+        }
+        if (code) {
+            loginWithGoogle()
+        }
+    }, [])
     async function handleSignIn() {
         try {
             // console.log("asd")
 
             // const res = await fetch('http://localhost:8080/signup', {
             //     method: 'POST',
-               
+
             //     body: JSON.stringify({
             //         username: username,
             //         password: password
@@ -23,9 +36,9 @@ export default function SignInPage() {
             // })
             // const response = await res.text()
 
-            const response=await post('signup',JSON.stringify({username,password}))
+            const response = await post('signup', JSON.stringify({ username, password }))
             // toast.success(response)
-            console.log(response,"ressssss")
+            console.log(response, "ressssss")
 
         }
         catch (error) {
@@ -34,6 +47,12 @@ export default function SignInPage() {
         }
 
 
+    }
+
+    async function loginWithGoogle() {
+        const url: string = await get('getGoogleUrl')
+        console.log(url)
+        router.replace(url)
     }
 
     return (
@@ -45,6 +64,7 @@ export default function SignInPage() {
                 <input onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Enter your password" className="input input-bordered w-full max-w-xs m-3" />
                 <button onClick={handleSignIn} className="btn">Sign in</button>
 
+                <button onClick={loginWithGoogle} >Log in with google</button>
 
             </div>
 

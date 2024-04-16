@@ -18,6 +18,7 @@ import (
 
 	"os"
 
+	"github.com/gofor-little/env"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -468,15 +469,20 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/getChannelSummary",authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
 	mux.Handle("/updateUserDetails",authMiddleWare(http.HandlerFunc(postgres.UpdateUserDetails)))
 	mux.Handle("/uploadProfileImage", authMiddleWare(http.HandlerFunc(UploadProfileImage)))
-
+	mux.HandleFunc("/getGoogleUrl",auth.GetGoogleUrl)
+	mux.HandleFunc("/loginWithGoogle",auth.LoginWithGoogle)
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)
 	mux.HandleFunc("/signIn", auth.SignIn)
+	mux.HandleFunc("/signOut", auth.SignOut)
 	mux.Handle("/hls/", http.StripPrefix("/hls/", corsFileServer(http.Dir("/home/anurag/s3mnt"))))
 }
 
 func main() {
 	mux := http.NewServeMux()
+	if err := env.Load(".env"); err != nil {
+		panic(err)
+	}
 
 	postgres.Connect()
 	defer postgres.Disconnect()

@@ -3,6 +3,7 @@ import Sections, { SectionsType } from "./sidebarSections";
 import { User } from "../header";
 import { get } from "~/api";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 
 export default async function  Sidebar({ id }: { id: string }) {
@@ -31,7 +32,7 @@ export default async function  Sidebar({ id }: { id: string }) {
         {
             name: "LogOut",
             icon: "",
-            path: "/logout"
+            path: "/auth/logout"
         }
     ]
     
@@ -41,6 +42,7 @@ export default async function  Sidebar({ id }: { id: string }) {
         <div className="w-[20%] flex flex-col  h-full bg-primaryGrad1  " >
 
             <Sections pathIndex={1} sections={sections}  />
+          
 
         </div>
     )
