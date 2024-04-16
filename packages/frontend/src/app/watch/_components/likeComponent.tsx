@@ -18,7 +18,7 @@ export default function LikeComponent({ likes, dislikes, videoId, likeState }: {
         setLikeCount(likes)
         setDislikeCount(dislikes)
         setCurretnLikeState(likeState)
-    }, [])
+    }, [likes, dislikes, videoId, likeState])
     console.log(likeState, "like state")
 
     async function like() {

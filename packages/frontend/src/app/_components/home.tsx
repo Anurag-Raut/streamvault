@@ -63,33 +63,38 @@ export default function Home() {
                     category,
                     id,
                     user,
-                    src
+                    src,
+                    createdAt,
+                    views
 
                 }: {
                     title: string,
                     thumbnail: string,
                     description: string,
                     category: string,
-                    id:string,
-                    src:string,
-                    user:{
-                        username:string,
-                        id:string
+                    id: string,
+                    src: string,
+                    createdAt: string,
+                    views: number,
+                    user: {
+                        username: string,
+                        id: string
+                        profileImage: string
                     }
 
 
                 }, index: number) => (
 
 
-                    
-                   <VideoCard title={title} thumbnail={thumbnail} id={id} user={user} src={src}   />
-                
+
+                    <VideoCard title={title} thumbnail={thumbnail} id={id} user={user} createdAt={createdAt} views={views} />
+
 
                 ))
 
             }
-              
-                
-       </div >
+
+
+        </div >
     )
 }

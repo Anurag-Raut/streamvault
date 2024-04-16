@@ -17,10 +17,11 @@ var clients = map[string]map[*websocket.Conn]bool{}
 var broadcast = make(chan Message)
 
 type Message struct {
-	UserId   *string `json:"userId"`
+	User   postgres.UserDetails `json:"user"`
 	Message  string  `json:"message"`
 	StreamId string  `json:"streamId"`
 }
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
@@ -65,11 +66,11 @@ func Chat(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(clients,"clients")
 			return
 		}
-		if msg.UserId == nil {
+		if msg.User.UserId == "" {
 			conn.WriteJSON(ErrorResponse{Error: "Log in to send messages"})
 			continue
 		}
-		exists, err := postgres.UserExists(*msg.UserId)
+		exists, err := postgres.UserExists(msg.User.UserId)
 
 		if err != nil {
 			fmt.Println(err)
@@ -83,8 +84,9 @@ func Chat(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		fmt.Println(msg.Message, msg.UserId, msg.StreamId)
-		err=postgres.PostChat(msg.StreamId, *msg.UserId, msg.Message)
+		fmt.Println(msg.Message, msg.User.UserId, msg.StreamId)
+
+		err=postgres.PostChat(msg.StreamId, msg.User.UserId, msg.Message)
 		if err != nil {
 			fmt.Println(err)
 			conn.WriteJSON(ErrorResponse{Error: "Error posting message"})
@@ -93,6 +95,8 @@ func Chat(w http.ResponseWriter, r *http.Request) {
 		
 
 		
+
+
 
 		broadcast <- msg
 	}

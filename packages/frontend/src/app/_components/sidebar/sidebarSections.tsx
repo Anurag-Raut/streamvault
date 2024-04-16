@@ -19,7 +19,6 @@ export default function Sections({sections,pathIndex}:{
     const currentPath=pathname.split('/')[pathIndex]??""
     const previousPath=pathname.split('/').slice(0,pathIndex).join('/')
     console.log(previousPath,"previousPath")
-    const router = useRouter();
 
     
 

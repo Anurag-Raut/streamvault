@@ -12,6 +12,7 @@ export type Content={
     comments?:number,
     description?:string,
     category:string,
+    views:number
 }
 export default async function Content({ params }: { params: { id: string } }) {
 
@@ -19,16 +20,16 @@ export default async function Content({ params }: { params: { id: string } }) {
 
     
 
-    const data= await get('getContent',{},headers())
-    console.log(data,"name")
+    const data= await get('getDashboardContent',{},headers())
+    console.log(data,"dashboard content")
     return (
         <div className="w-full h-[90%] p-5">
             <h1 className="text-xl my-3">
                 Channel Content
             </h1>
-            <Card classname={"h-[90%]"}>
-                <div className="overflow-x-auto overflow-y-auto h-full ">
-                    <table className="table">
+            <Card classname={"h-[90%] w-[1000px] "}>
+                <div className=" overflow-y-auto h-full w-full ">
+                    <table className="table w-full ">
                         {/* head */}
                         <thead>
                             <tr>
@@ -42,6 +43,7 @@ export default async function Content({ params }: { params: { id: string } }) {
                                 <th>Category</th>
                                 <th>Likes </th>
                                 <th>Comments</th>
+                                <th>Views</th>
 
                                 <th></th>
                             </tr>
@@ -76,6 +78,9 @@ export default async function Content({ params }: { params: { id: string } }) {
                                         <td>{item.likes}</td>
                                         <th>
                                             <button className="btn btn-ghost btn-xs">{item.comments}</button>
+                                        </th>
+                                        <th>
+                                                {item.views}
                                         </th>
                                     </tr>
                                     )

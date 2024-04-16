@@ -384,6 +384,63 @@ func uploadThumbnail(w http.ResponseWriter, r *http.Request) {
 	w.Write(responseJson)
 }
 
+func UploadProfileImage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(100 << 20) // 10 MB max
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	profileImage, profileImageHeader, err := r.FormFile("profileImage")
+	if err != nil {
+		http.Error(w, "Error parsing profileImage", http.StatusBadRequest)
+		return
+	}
+	defer profileImage.Close()
+
+	profileImageExtension := filepath.Ext(profileImageHeader.Filename)
+	profileImageExtension = strings.ToLower(profileImageExtension)
+
+	imageData, err := io.ReadAll(profileImage)
+	if err != nil {
+		http.Error(w, "Error reading profileImage", http.StatusBadRequest)
+		return
+	}
+
+	// Get the home directory
+	homeDir := os.Getenv("HOME")
+	if homeDir == "" {
+		http.Error(w, "Unable to get home directory", http.StatusInternalServerError)
+		return
+	}
+
+	uploadDir := filepath.Join(homeDir, "s3mnt", "profileImage")
+	err = os.MkdirAll(uploadDir, os.ModePerm)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error creating directory: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	imageName := uuid.New().String()
+	profileImagePath := filepath.Join(uploadDir, imageName+profileImageExtension)
+	err = os.WriteFile(profileImagePath, imageData, os.ModePerm)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error writing profileImage: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// fmt.Fprint(w, "profileImage/"+imageName+profileImageExtension)
+	var profileImagePathResponse struct {
+		ProfileImagePath string `json:"profileImagePath"`
+	}
+	profileImagePathResponse.ProfileImagePath = "profileImage/" + imageName + profileImageExtension
+	responseJson, err := json.Marshal(profileImagePathResponse)
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+	w.Write(responseJson)
+}
 
 
 func setupRoutes(mux *http.ServeMux) {
@@ -394,7 +451,9 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/uploadThumbnail", authMiddleWare(http.HandlerFunc(uploadThumbnail)))
 	mux.Handle("/getVideos", (http.HandlerFunc(postgres.GetStreams)))
 	mux.Handle("/getUserId", (http.HandlerFunc(postgres.GetUserId)))
-	mux.Handle("/getContent", authMiddleWare(http.HandlerFunc(postgres.GetContent)))
+	mux.Handle("/getContent", (http.HandlerFunc(postgres.GetContent)))
+	mux.Handle("/getDashboardContent", authMiddleWare(http.HandlerFunc(postgres.GetDashboardContent)))
+
 	mux.Handle("/getVideoData", getVideoDataMiddleware(http.HandlerFunc(postgres.GetVideoData)))
 	mux.Handle("/like",authMiddleWare(http.HandlerFunc(postgres.Like)))
 	mux.Handle("/dislike",authMiddleWare(http.HandlerFunc(postgres.Dislike)))
@@ -407,6 +466,8 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/getCommmentsForChannel",authMiddleWare(http.HandlerFunc(postgres.GetCommmentsForCreator)))
 	mux.Handle("/getUserDetailsByUsername",(http.HandlerFunc(postgres.GetUserDetailsByUsername)))
 	mux.Handle("/getChannelSummary",authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
+	mux.Handle("/updateUserDetails",authMiddleWare(http.HandlerFunc(postgres.UpdateUserDetails)))
+	mux.Handle("/uploadProfileImage", authMiddleWare(http.HandlerFunc(UploadProfileImage)))
 
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)

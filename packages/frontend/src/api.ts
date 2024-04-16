@@ -10,7 +10,7 @@ export const post = async (url:string,data:any,headers={},serverHeaders:any=null
         },
         body: data,
         credentials:'include',
-        cache:"no-cache"
+        cache:"no-store"
 
     })
     return await res.json()

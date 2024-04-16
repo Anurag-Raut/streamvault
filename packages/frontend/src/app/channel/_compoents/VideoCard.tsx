@@ -1,13 +1,11 @@
 'use client'
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
-import VideoJS from "../watch/_components/player"
+import VideoJS from "~/app/watch/_components/player"
 import Player from "video.js/dist/types/player"
 import videojs from "video.js"
 import Link from "next/link"
-import Avatar from "./avatar"
-import millify from "millify";
-
+import millify from "millify"
 export function timeAgo(date: string) {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
     const intervals = {
@@ -44,20 +42,15 @@ export function timeAgo(date: string) {
 
 
 
-export default function VideoCard({ title, thumbnail, id, user ,createdAt,views}: {
+export default function VideoCard({ title, thumbnail, id ,createdAt,views}: {
     title: string,
     thumbnail: string,
     category?: string,
     id: string,
     createdAt: string,
-    user: {
-        username: string,
-        id: string,
-        profileImage: string,
-    },
-    views: number
+  views: number
 }) {
-console.log(user.profileImage, "profile image")
+
     const [hovering, setHovering] = useState(false)
     const router = useRouter()
 
@@ -109,13 +102,10 @@ console.log(user.profileImage, "profile image")
 
             }
             <div className="flex mt-3 ">
-                <div className="mr-3">
-                    <Avatar size={35} name={user.username} src={user.profileImage} />
-                </div>
+               
                 <div>
 
                 <p className="font-bold text-lg">{title}</p>
-                <p className="text-md opacity-65 font-medium"> {user.username}</p>
                 <div className="flex">
                     <p className="text-md opacity-65 font-medium ">{`${ millify(views)} views`}</p>
                     <p className="text-md opacity-65 ml-3 font-medium"> {timeAgo(createdAt)}</p>

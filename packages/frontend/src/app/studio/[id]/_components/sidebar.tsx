@@ -20,9 +20,9 @@ const sections = [
 
     },
     {
-        name: "Analytics",
+        name: "Customize",
         icon: "",
-        path:"/analytics"
+        path:"/customize"
     },
     {
         name: "Comments",
@@ -37,7 +37,7 @@ export default async function Sidebar({id}:{id:string}) {
 
 
     return (
-        <div className="w-[20%] flex flex-col  h-full bg-primaryGrad1  " >
+        <div className="w-[20%] min-w-[200px] flex flex-col  h-full bg-primaryGrad1  " >
             
             <div className="my-5 mb-10 justify-center flex  p-6">
                 <Avatar size={160} src={user.profileImage} name={user.username} />

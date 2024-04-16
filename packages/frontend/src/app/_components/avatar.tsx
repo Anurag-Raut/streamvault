@@ -3,7 +3,7 @@
 export default function Avatar({ src, size=50, 
     name
 
-}: { src: string; size: number, name: string }) {
+}: { src?: string; size: number, name: string }) {
 
     let s =size.toString()
     console.log(`w-[${s}px]`)
@@ -39,13 +39,16 @@ console.log(generateHSL(name))
         <div style={
             {
                 width: `${size}px`,
-                height: `${size}px`
+                height: `${size}px`,
+                minHeight: `${size}px`,
+                minWidth: `${size}px`,
+
             }
         
-        }  className={` rounded-full flex justify-center items-center pointer curcor`}>
+        }  className={` rounded-full  justify-center items-center `}>
             {src ?
-                <div className="w-full h-full rounded-full">
-                    <img src={src} />
+                <div className="w-full h-full rounded-full overflow-hidden object-contain justify-center items-center flex bg-background3  ">
+                    <img className="object-contain" src={src} />
                 </div>
                 :
                 <div className={` w-full h-full flex rounded-full justify-center items-center self-center text-white font-bold `} style={{

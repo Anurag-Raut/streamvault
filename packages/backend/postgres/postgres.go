@@ -28,7 +28,13 @@ func Disconnect() {
 	pool.Close()
 }
 
-func sendError(w http.ResponseWriter, err string) {
+func sendError(w http.ResponseWriter, err string, codes ...int) {
+	code := http.StatusInternalServerError // Default value
+
+	// Check if codes slice is not empty
+	if len(codes) > 0 {
+		code = codes[0]
+	}
 	type Error struct {
 		Error string `json:"error"`
 	}
@@ -36,6 +42,7 @@ func sendError(w http.ResponseWriter, err string) {
 		Error: err,
 	}
 	result, _ := json.MarshalIndent(errorResponse, "", "  ")
+	w.WriteHeader(code)
 	w.Write(result)
 }
 
@@ -56,7 +63,7 @@ func AddStream(title, description, category, thumbnail, userId string) (string, 
 func GetStreams(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	rows, err := pool.Query(ctx,
-		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming", u.username ,u.id AS "userId"
+		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming",v."createdAt", u.username ,u.id,v."views",u."profileImage"
 		 FROM "Video" v
 		 JOIN "User" u ON v."userId" = u.id`)
 	if err != nil {
@@ -64,39 +71,36 @@ func GetStreams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer rows.Close()
-
-	streams := make([]map[string]interface{}, 0)
+	type Video struct {
+		Id          string      `json:"id"`
+		Title       string      `json:"title"`
+		Description string      `json:"description"`
+		Category    string      `json:"category"`
+		Thumbnail   string      `json:"thumbnail"`
+		IsStreaming bool        `json:"isStreaming"`
+		User        UserDetails `json:"user"`
+		CreatedAt   time.Time   `json:"createdAt"`
+		Views       int         `json:"views"`
+	}
+	videos := make([]Video, 0)
 	for rows.Next() {
-		var id, title, description, category, thumbnail string
-		var isStreaming bool
-		var user struct {
-			Username string `json:"username"`
-			UserId   string `json:"userId"`
-		}
+		var video Video
 
-		err = rows.Scan(&id, &title, &description, &category, &thumbnail, &isStreaming, &user.Username, &user.UserId)
+		err = rows.Scan(&video.Id, &video.Title, &video.Description, &video.Category, &video.Thumbnail, &video.IsStreaming, &video.CreatedAt, &video.User.Username, &video.User.UserId, &video.Views, &video.User.ProfileImage)
 		if err != nil {
+			fmt.Println(err, "errrurrr")
 			sendError(w, err.Error())
 			return
 		}
-		fmt.Println(user, "user")
-		stream := map[string]interface{}{
-			"id":          id,
-			"title":       title,
-			"description": description,
-			"category":    category,
-			"thumbnail":   thumbnail,
-			"isStreaming": isStreaming,
-			"user":        user,
-		}
-		streams = append(streams, stream)
+
+		videos = append(videos, video)
 	}
 	if err = rows.Err(); err != nil {
 		sendError(w, err.Error())
 		return
 	}
 
-	result, _ := json.MarshalIndent(streams, "", "  ")
+	result, _ := json.MarshalIndent(videos, "", "  ")
 	w.Write(result)
 }
 
@@ -139,7 +143,9 @@ func UpdateStatus(streamId string, status bool) error {
 func GetUserId(w http.ResponseWriter, r *http.Request) {
 	var userIdd *string
 	var userIdResponse struct {
-		UserId *string `json:"userId"`
+		UserId       *string `json:"userId"`
+		Username     string  `json:"username"`
+		ProfileImage *string `json:"profileImage"`
 	}
 
 	cookie, err := r.Cookie("jwt")
@@ -186,6 +192,21 @@ func GetUserId(w http.ResponseWriter, r *http.Request) {
 
 			userIdd = &userId
 			userIdResponse.UserId = userIdd
+			var userDetails UserDetails
+			userDetails, err := GetUserDetailsFromDatabase(*userIdResponse.UserId)
+
+			if err != nil {
+				fmt.Println(err)
+				userIdResponse.UserId = userIdd
+
+				response, _ := json.MarshalIndent(userIdResponse, "", "  ")
+				w.Write(response)
+				return
+			}
+			fmt.Println(userDetails, "userDetails bbabbee")
+			userIdResponse.Username = userDetails.Username
+			userIdResponse.ProfileImage = userDetails.ProfileImage
+			userIdResponse.UserId = userIdd
 			response, _ := json.MarshalIndent(userIdResponse, "", "  ")
 			w.Write(response)
 
@@ -197,6 +218,7 @@ func GetUserId(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		userIdResponse.UserId = userIdd
+
 		response, _ := json.MarshalIndent(userIdResponse, "", "  ")
 		w.Write(response)
 		return
@@ -224,16 +246,17 @@ func GetVideoData(w http.ResponseWriter, r *http.Request) {
 		User        struct {
 			Username string `json:"username"`
 			ID       string `json:"id"`
+			ProfileImage *string `json:"profileImage"`
 		} `json:"user"`
 	}
 	var videoData VideoData
 
 	err = pool.QueryRow(ctx,
-		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming", u.username, u.id
+		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming", u.username, u.id,u."profileImage"
 		 FROM "Video" v
 		 JOIN "User" u ON v."userId" = u."id"
 		 WHERE v.id = $1`,
-		videoId).Scan(&videoData.ID, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.IsStreaming, &videoData.User.Username, &videoData.User.ID)
+		videoId).Scan(&videoData.ID, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.IsStreaming, &videoData.User.Username, &videoData.User.ID,&videoData.User.ProfileImage)
 	if err != nil {
 		fmt.Println(err)
 		sendError(w, "Error fetching video data")
@@ -344,6 +367,17 @@ func GetVideoData(w http.ResponseWriter, r *http.Request) {
 			sendError(w, "Error fetching subscription state")
 			return
 		}
+	}
+
+	_, err = pool.Exec(ctx,
+		`UPDATE "Video"
+		SET "views" = "views" + 1
+		WHERE id = $1`, videoId)
+
+	if err != nil {
+		fmt.Println(err)
+		sendError(w, "Error updating views")
+		return
 	}
 
 	result, _ := json.MarshalIndent(response, "", "  ")
@@ -537,13 +571,13 @@ func Unsubscribe(w http.ResponseWriter, r *http.Request) {
 // 	return count, nil
 // }
 
-
-
 func GetContent(w http.ResponseWriter, r *http.Request) {
-	var userId = r.Context().Value("userId").(string)
+	var username string
 	var pageSize = 10
 	var pageNumber = 1
 	var err error = nil
+	var vodConditions = "false,true"
+
 	pageSize, err = strconv.Atoi(r.URL.Query().Get("pageSize"))
 	if err != nil {
 		fmt.Println(err)
@@ -555,8 +589,20 @@ func GetContent(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		pageNumber = 1
 	}
+	username = r.URL.Query().Get("username")
 
-	fmt.Println(pageSize, pageNumber, "pageSize,pageNumber")
+	isVOD, err := strconv.ParseBool(r.URL.Query().Get("isVOD"))
+	if err != nil {
+		fmt.Println(err)
+		vodConditions = "FALSE,TRUE"
+
+	} else {
+		if isVOD {
+			vodConditions = "TRUE"
+		} else {
+			vodConditions = "FALSE"
+		}
+	}
 
 	type Content struct {
 		Id          string    `json:"id"`
@@ -569,21 +615,24 @@ func GetContent(w http.ResponseWriter, r *http.Request) {
 		Category    string    `json:"category"`
 		Dislikes    int       `json:"dislikes"`
 		Subscribers int       `json:"subscribers"`
+		Views       int       `json:"views"`
 	}
 
 	ctx := context.Background()
-	rows, err := pool.Query(ctx, `
-    SELECT
-        v.id, v.title, v.description, v.category, v.thumbnail, v."createdAt",
-        (SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = true) AS likes,
-        (SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = false) AS dislikes,
-        (SELECT COUNT(*) FROM "Subscription" WHERE "creatorId" = $1) AS subscribers,
-        (SELECT COUNT(*) FROM "Comment" WHERE "videoId" = v.id) AS comments
-    FROM "Video" v
+	rows, err := pool.Query(ctx,
+		fmt.Sprintf(`
+		SELECT
+		v.id, v.title, v.description, v.category, v.thumbnail, v."createdAt",v."views",
+		(SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = true) AS likes,
+		(SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = false) AS dislikes,
+		(SELECT COUNT(*) FROM "Subscription" WHERE "creatorId" = u.id) AS subscribers,
+		(SELECT COUNT(*) FROM "Comment" WHERE "videoId" = v.id) AS comments
+		FROM "Video" v
+		JOIN "User" u ON v."userId" = u.id
+	WHERE u.username = $1 AND v."isVOD" IN (%s)
 	ORDER BY v."createdAt" DESC
-    LIMIT $2 OFFSET $3
-
-	`, userId, pageSize, (pageNumber-1)*pageSize)
+	LIMIT $2 OFFSET $3
+		`, vodConditions), username, pageSize, (pageNumber-1)*pageSize)
 
 	if err != nil {
 		sendError(w, err.Error())
@@ -591,11 +640,90 @@ func GetContent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var response =make([]Content,0)
+	var response = make([]Content, 0)
 	for rows.Next() {
-		
+
 		var videoData Content
-		err = rows.Scan(&videoData.Id, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.CreatedAt, &videoData.Likes, &videoData.Dislikes, &videoData.Subscribers, &videoData.Comments)
+		err = rows.Scan(&videoData.Id, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.CreatedAt, &videoData.Views, &videoData.Likes, &videoData.Dislikes, &videoData.Subscribers, &videoData.Comments)
+		if err != nil {
+			sendError(w, err.Error())
+			return
+		}
+		response = append(response, videoData)
+
+	}
+	fmt.Println(response, "response")
+	if err = rows.Err(); err != nil {
+		sendError(w, err.Error())
+		return
+	}
+
+	result, _ := json.MarshalIndent(response, "", "  ")
+	fmt.Println(string(result))
+	w.Write(result)
+
+}
+
+func GetDashboardContent(w http.ResponseWriter, r *http.Request) {
+	var userId string
+	var pageSize = 10
+	var pageNumber = 1
+	var err error = nil
+
+	pageSize, err = strconv.Atoi(r.URL.Query().Get("pageSize"))
+	if err != nil {
+		fmt.Println(err)
+		pageSize = 10
+	}
+
+	pageNumber, err = strconv.Atoi(r.URL.Query().Get("pageNumber"))
+	if err != nil {
+		fmt.Println(err)
+		pageNumber = 1
+	}
+	userId = r.Context().Value("userId").(string)
+
+	type Content struct {
+		Id          string    `json:"id"`
+		Thumbnail   string    `json:"thumbnail"`
+		Title       string    `json:"title"`
+		CreatedAt   time.Time `json:"createdAt"`
+		Likes       int       `json:"likes"`
+		Comments    int       `json:"comments"`
+		Description string    `json:"description"`
+		Category    string    `json:"category"`
+		Dislikes    int       `json:"dislikes"`
+		Subscribers int       `json:"subscribers"`
+		Views       int       `json:"views"`
+	}
+
+	ctx := context.Background()
+	rows, err := pool.Query(ctx,
+		`
+		SELECT
+		v.id, v.title, v.description, v.category, v.thumbnail, v."createdAt",v."views",
+		(SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = true) AS likes,
+		(SELECT COUNT(*) FROM "Like" WHERE "videoId" = v.id AND "isLike" = false) AS dislikes,
+		(SELECT COUNT(*) FROM "Subscription" WHERE "creatorId" = u.id) AS subscribers,
+		(SELECT COUNT(*) FROM "Comment" WHERE "videoId" = v.id) AS comments
+		FROM "Video" v
+		JOIN "User" u ON v."userId" = u.id
+	WHERE u."id" = $1
+	ORDER BY v."createdAt" DESC
+	LIMIT $2 OFFSET $3
+		`, userId, pageSize, (pageNumber-1)*pageSize)
+
+	if err != nil {
+		sendError(w, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var response = make([]Content, 0)
+	for rows.Next() {
+
+		var videoData Content
+		err = rows.Scan(&videoData.Id, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.CreatedAt, &videoData.Views, &videoData.Likes, &videoData.Dislikes, &videoData.Subscribers, &videoData.Comments)
 		if err != nil {
 			sendError(w, err.Error())
 			return
@@ -620,35 +748,35 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		VideoId string `json:"videoId"`
 	}
-	err:=json.NewDecoder(r.Body).Decode(&request)
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		fmt.Println("erorr decoding",err)
+		fmt.Println("erorr decoding", err)
 		sendError(w, err.Error())
 		return
 	}
 
 	rows, err := pool.Query(ctx,
-		`SELECT c."userId",c.text,c."createdAt"
-		 FROM "Comment" c
+		`SELECT c."userId",c.text,c."createdAt",u.username,u."profileImage"
+		FROM "Comment" c 
+		JOIN "User" u ON c."userId" = u.id
 		 Where c."videoId" = $1
 		 ORDER BY c."createdAt" DESC
-		`,request.VideoId)
+		`, request.VideoId)
 	if err != nil {
-		sendError(w, err.Error())
+		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
 	type Chat struct {
-		UserId    string    `json:"userId"`
-		Message   string    `json:"message"`
-		CreatedAt time.Time `json:"createdAt"`
-
+		Message   string      `json:"message"`
+		CreatedAt time.Time   `json:"createdAt"`
+		User      UserDetails `json:"user"`
 	}
 	chats := make([]Chat, 0)
 	for rows.Next() {
 		var chat Chat
-		err = rows.Scan( &chat.UserId, &chat.Message, &chat.CreatedAt)
+		err = rows.Scan(&chat.User.UserId, &chat.Message, &chat.CreatedAt, &chat.User.Username, &chat.User.ProfileImage)
 		if err != nil {
 			sendError(w, err.Error())
 			return
@@ -664,28 +792,27 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
-
-func PostChat( videoId string,  userId string , message string ) error {
+func PostChat(videoId string, userId string, message string) error {
 	ctx := context.Background()
-	_,err := pool.Exec(ctx,
+	_, err := pool.Exec(ctx,
 		`INSERT INTO "Comment" ("videoId", "userId", "text")
 		 VALUES ($1, $2, $3)`,
 		videoId, userId, message)
 	if err != nil {
-		fmt.Println(err,"reallly")
-		return  err
+		fmt.Println(err, "reallly")
+		return err
 	}
 	return nil
-
 
 }
 
 type UserDetails struct {
-	Username string `json:"username"`
+	Username     string  `json:"username"`
 	ProfileImage *string `json:"profileImage"`
-	UserId string `json:"userId"`
+	UserId       string  `json:"userId"`
 }
-func GetUserDetailsFromDatabase(userId string) (UserDetails,error){
+
+func GetUserDetailsFromDatabase(userId string) (UserDetails, error) {
 
 	var userDetails UserDetails
 
@@ -697,18 +824,16 @@ func GetUserDetailsFromDatabase(userId string) (UserDetails,error){
 		userId).Scan(&userDetails.Username, &userDetails.ProfileImage, &userDetails.UserId)
 	if err != nil {
 		fmt.Println(err)
-		return userDetails,err
+		return userDetails, err
 	}
-	return userDetails,nil
-
+	return userDetails, nil
 
 }
 
-func GetCommmentsForCreator(w http.ResponseWriter,r* http.Request){
+func GetCommmentsForCreator(w http.ResponseWriter, r *http.Request) {
 
-	var creatorId =r.Context().Value("userId").(string)
+	var creatorId = r.Context().Value("userId").(string)
 	ctx := context.Background()
-
 
 	rows, err := pool.Query(ctx,
 		`SELECT c."userId",c.text,c."createdAt",c."videoId",u.username,u."profileImage",v.title,v.thumbnail
@@ -717,44 +842,43 @@ func GetCommmentsForCreator(w http.ResponseWriter,r* http.Request){
 		 JOIN "Video" v ON c."videoId" = v.id
 		 Where c."videoId" IN (SELECT v.id FROM "Video" v WHERE v."userId" = $1)
 		 ORDER BY c."createdAt" DESC
-		`,creatorId)
-
+		`, creatorId)
 
 	if err != nil {
-		fmt.Println(err,"errror getting comments")
+		fmt.Println(err, "errror getting comments")
 		sendError(w, err.Error())
 		return
 	}
 	defer rows.Close()
 
 	type Chat struct {
-		User struct{
-			Username string `json:"username"`
+		User struct {
+			Username     string  `json:"username"`
 			ProfileImage *string `json:"profileImage"`
-			UserId string `json:"userId"`
+			UserId       string  `json:"userId"`
 		} `json:"user"`
-		
+
 		Message   string    `json:"message"`
 		CreatedAt time.Time `json:"createdAt"`
-		Video struct {
-			VideoId string `json:"videoId"`
+		Video     struct {
+			VideoId   string `json:"videoId"`
 			Thumbnail string `json:"thumbnail"`
-			Title string `json:"title"`
+			Title     string `json:"title"`
 		} `json:"video"`
 	}
 	chats := make([]Chat, 0)
 	for rows.Next() {
 		var chat Chat
-		err = rows.Scan( &chat.User.UserId, &chat.Message, &chat.CreatedAt, &chat.Video.VideoId, &chat.User.Username, &chat.User.ProfileImage, &chat.Video.Title, &chat.Video.Thumbnail)
+		err = rows.Scan(&chat.User.UserId, &chat.Message, &chat.CreatedAt, &chat.Video.VideoId, &chat.User.Username, &chat.User.ProfileImage, &chat.Video.Title, &chat.Video.Thumbnail)
 		if err != nil {
-			fmt.Println(err,"error scanning")
+			fmt.Println(err, "error scanning")
 			sendError(w, err.Error())
 			return
 		}
 		chats = append(chats, chat)
 	}
 	if err = rows.Err(); err != nil {
-		fmt.Println(err,"error getting rows")
+		fmt.Println(err, "error getting rows")
 
 		sendError(w, err.Error())
 		return
@@ -763,11 +887,9 @@ func GetCommmentsForCreator(w http.ResponseWriter,r* http.Request){
 	result, _ := json.MarshalIndent(chats, "", "  ")
 	w.Write(result)
 
-
-
 }
 
-func GetUserDetailsByUsername (w http.ResponseWriter, r *http.Request){
+func GetUserDetailsByUsername(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("here")
 	var username string
 	err := json.NewDecoder(r.Body).Decode(&username)
@@ -792,10 +914,7 @@ func GetUserDetailsByUsername (w http.ResponseWriter, r *http.Request){
 		
 		FROM "User"
 		WHERE username = $1`,
-		username).Scan( &userDetails.ProfileImage, &userDetails.UserId,&userDetails.Subscribers)
-
-
-		
+		username).Scan(&userDetails.ProfileImage, &userDetails.UserId, &userDetails.Subscribers)
 
 	if err != nil {
 		fmt.Println(err)
@@ -807,14 +926,14 @@ func GetUserDetailsByUsername (w http.ResponseWriter, r *http.Request){
 	w.Write(result)
 }
 
-func GetChannelSummary(w http.ResponseWriter, r *http.Request){
+func GetChannelSummary(w http.ResponseWriter, r *http.Request) {
 
 	var response struct {
-		Subscribers int `json:"subscribers"`
+		Subscribers          int `json:"subscribers"`
 		SubscribersLast7Days int `json:"subscribersLast7Days"`
-		TotalVideos int `json:"totalVideos"`
+		TotalVideos          int `json:"totalVideos"`
 	}
-	ctx:=context.Background()
+	ctx := context.Background()
 	userId := r.Context().Value("userId").(string)
 	err := pool.QueryRow(ctx,
 		`SELECT 	
@@ -839,7 +958,7 @@ func GetChannelSummary(w http.ResponseWriter, r *http.Request){
 			),
 			0
 		) AS "totalVideos"
-		`,userId).Scan(&response.Subscribers, &response.SubscribersLast7Days, &response.TotalVideos)
+		`, userId).Scan(&response.Subscribers, &response.SubscribersLast7Days, &response.TotalVideos)
 	if err != nil {
 		sendError(w, err.Error())
 		return
@@ -847,7 +966,37 @@ func GetChannelSummary(w http.ResponseWriter, r *http.Request){
 	result, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(result)
 
+}
 
+func UpdateUserDetails(w http.ResponseWriter, r *http.Request) {
+	var userDetails struct {
+		Username     *string `json:"username"`
+		ProfileImage *string `json:"profileImage"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&userDetails)
+	if err != nil {
+		fmt.Println(err.Error())
+		sendError(w, "error decoding user details")
+		return
+	}
+	userId := r.Context().Value("userId").(string)
+	ctx := context.Background()
+	_, err = pool.Exec(ctx,
+		`UPDATE "User"
+		 SET "username" = COALESCE($1, "username"),
+		 "profileImage" = COALESCE($2, "profileImage")
+		 WHERE id = $3`,
+		userDetails.Username, userDetails.ProfileImage, userId)
+	if err != nil {
+		sendError(w, err.Error())
+		return
+	}
+	var response struct {
+		Message string `json:"message"`
+	}
+	response.Message = "User details updated"
 
+	result, _ := json.MarshalIndent(response, "", "  ")
+	w.Write(result)
 
 }
