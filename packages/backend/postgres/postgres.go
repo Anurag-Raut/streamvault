@@ -12,9 +12,22 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var pool *pgxpool.Pool
+
+func HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+    return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	fmt.Println(hash)
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	fmt.Println(err,"errrr",hash)
+    return err == nil
+}
 
 func Connect() {
 	var err error
@@ -117,7 +130,7 @@ func UserExists(userId string) (bool, error) {
 	return count > 0, nil
 }
 
-func CreateUser(username string,profileImage *string) (string, error) {
+func CreateUser(username string, profileImage *string) (string, error) {
 	ctx := context.Background()
 	var id string
 
@@ -127,18 +140,18 @@ func CreateUser(username string,profileImage *string) (string, error) {
 		username).Scan(&id)
 
 	if err == pgx.ErrNoRows { // User doesn't exist, perform insert
-	fmt.Println("User doesn't exist")
-		err2:= pool.QueryRow(ctx,
+		fmt.Println("User doesn't exist")
+		err2 := pool.QueryRow(ctx,
 			`INSERT INTO "User" (username,"profileImage")
              VALUES ($1,$2)
              RETURNING "id"`,
-			username,profileImage).Scan(&id)
+			username, profileImage).Scan(&id)
 		if err2 != nil {
-			fmt.Println(err2,"Error inserting user")
+			fmt.Println(err2, "Error inserting user")
 			return "", err
 		}
 	} else if err != nil { // Other error occurred
-		fmt.Println(err,"Other error")
+		fmt.Println(err, "Other error")
 		return "", err
 	}
 
@@ -1013,5 +1026,68 @@ func UpdateUserDetails(w http.ResponseWriter, r *http.Request) {
 
 	result, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(result)
+
+}
+
+func CheckUsernamePassword(username string, password string) (bool,string, error) {
+	ctx := context.Background()
+	var hashedPassword,id string
+
+	err := pool.QueryRow(ctx,
+		`SELECT p.password, u.id
+		FROM "User" u
+		JOIN "Password" p ON u.username = p.username
+		WHERE u.username = $1;
+		  `,
+		username).Scan(&hashedPassword,&id)
+	if err != nil {
+		return false,"", err
+	}
+	correct:=CheckPasswordHash(password,hashedPassword)
+	if !correct {
+		return false,"",fmt.Errorf("Wrong password")
+	}
+
+	return true,id, nil
+}
+
+func CreateUserWithPassword(username string, password string) (string, error) {
+	ctx := context.Background()
+	var id string
+
+	hash, err := HashPassword(password)
+	if err!=nil {
+		return "",fmt.Errorf("error hashing password")
+	} 
+	fmt.Println(hash)
+
+	err = pool.QueryRow(ctx,
+		`SELECT "id" FROM "User" WHERE username = $1`,
+		username).Scan(&id)
+
+	if err == pgx.ErrNoRows { // User doesn't exist, perform insert
+		fmt.Println("User doesn't exist")
+		err2 := pool.QueryRow(ctx,
+			`INSERT INTO "User" (username)
+             VALUES ($1)
+             RETURNING "id"`,
+			username).Scan(&id)
+		if err2 != nil {
+			return "", err2
+		}
+
+		_, err2 = pool.Exec(ctx,
+			`INSERT INTO "Password"(username,password)
+			VALUES ($1,$2)
+			`, username, hash)
+
+		if err2 != nil {
+			return "", err2
+		}
+
+		return id,nil
+
+	}
+	return "",fmt.Errorf("Already signed Up , try to sign in")
 
 }

@@ -1,15 +1,15 @@
 
 
-export default function Avatar({ src, size=50, 
+export default function Avatar({ src, size = 50,
     name
 
 }: { src?: string; size: number, name: string }) {
 
-    let s =size.toString()
+    let s = size.toString()
     console.log(`w-[${s}px]`)
-    const hRange:[number,number] = [0, 360];
-    const sRange:[number,number]  = [50, 60];
-    const lRange:[number,number]  = [45, 55];
+    const hRange: [number, number] = [0, 360];
+    const sRange: [number, number] = [50, 60];
+    const lRange: [number, number] = [45, 55];
     const getHashOfString = (str: string) => {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -26,7 +26,7 @@ export default function Avatar({ src, size=50,
         const h = normalizeHash(hash, hRange[0], hRange[1]);
         const s = normalizeHash(hash, sRange[0], sRange[1]);
         const l = normalizeHash(hash, lRange[0], lRange[1]);
-        return`hsl(${h},${s}%,${l}%)`;
+        return `hsl(${h},${s}%,${l}%)`;
     };
 
 
@@ -34,7 +34,7 @@ export default function Avatar({ src, size=50,
         console.log(name)
         return name.charAt(0).toUpperCase();
     }
-console.log(generateHSL(name))
+    console.log(generateHSL(name))
     return (
         <div style={
             {
@@ -44,11 +44,11 @@ console.log(generateHSL(name))
                 minWidth: `${size}px`,
 
             }
-        
-        }  className={` rounded-full  justify-center items-center `}>
+
+        } className={` rounded-full  justify-center items-center `}>
             {src ?
-                <div className="w-full h-full rounded-full overflow-hidden object-contain justify-center items-center flex bg-background3  ">
-                    <img className="object-contain" src={src} />
+                <div className="w-full h-full rounded-full overflow-hidden object-cover justify-center items-center flex bg-background3  ">
+                    <img className="w-full h-full" src={src} />
                 </div>
                 :
                 <div className={` w-full h-full flex rounded-full justify-center items-center self-center text-white font-bold `} style={{

@@ -48,7 +48,7 @@ export default function ChatBubble({ message, user }: {
                 type: "spring", stiffness: 100 ,
                 duration: 0.5
             }}
-            className="flex flex-row items-start justify-start w-full h-auto  rounded-lg p-2 "
+            className="flex flex-row items-start justify-start w-fit h-auto  rounded-lg p-2 "
         >
 
 
@@ -59,7 +59,7 @@ export default function ChatBubble({ message, user }: {
             }} className="font-bold text-sm ml-2">
                 {user.username}:
             </div>
-            <div className="ml-2  text-wrap ">
+            <div className="ml-2 bg-red-400  text-wrap text-ellipsis  flex-wrap w-fit max-w-full break-all   ">
                 {message}
             </div>
 

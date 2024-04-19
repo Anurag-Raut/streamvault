@@ -14,6 +14,7 @@ export default function LogOut(){
             const data = await get("signOut",{})
             console.log(data)
             router.replace("http://localhost:3000/")
+            router.refresh()
             
         }
         logout()

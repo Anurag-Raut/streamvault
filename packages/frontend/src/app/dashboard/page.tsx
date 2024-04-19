@@ -96,7 +96,7 @@ export default function DashBoard() {
                 </div>
 
 
-                <div className="w-[500px] h-full " >
+                <div className="w-[600px] max-w-[600px] h-full " >
                     <Chat streamId={streamId} />
                 </div>
             </div>

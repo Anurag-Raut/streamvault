@@ -20,6 +20,7 @@ const VideoJS: React.FC<VideoJSProps> = (props) => {
       // The Video.js player needs to be _inside_ the component el for React 18 Strict Mode.
       const videoElement = document.createElement('video-js');
       videoElement.classList.add('vjs-big-play-centered');
+      
       if (videoRef.current) {
         videoRef?.current?.appendChild(videoElement);
       }
@@ -27,12 +28,21 @@ const VideoJS: React.FC<VideoJSProps> = (props) => {
         videojs.log('player is ready');
         onReady && onReady(player);
       }));
+      player.autoplay(true);
       // You could update an existing player in the `else` block here
       // on prop change, for example:
     } else {
       const player = playerRef.current;
       player.autoplay(options.autoplay);
       player.src(options.sources);
+      player.removeClass('vjs-live');
+
+      // Add subtitles
+      if (options.subtitles) {
+        options.subtitles.forEach((subtitle: any) => {
+          player.addRemoteTextTrack(subtitle,false);
+        });
+      }
     }
   }, [options, videoRef]);
 
@@ -48,7 +58,7 @@ const VideoJS: React.FC<VideoJSProps> = (props) => {
   }, [playerRef]);
 
   return (
-    <div data-vjs-player  className='rounded-xl' >
+    <div data-vjs-player className='rounded-xl'>
       <div ref={videoRef} className='rounded-xl' />
     </div>
   );

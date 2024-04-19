@@ -10,12 +10,14 @@ import Link from "next/link";
 
 export default async function Layout({ params, children }: { params: { username: string }, children: ReactNode }) {
     console.log(params, "params")
+    const username = decodeURIComponent(params.username)
+
     const data: {
         username: string,
         profileImage: string
         userId: string
         subscribers: number
-    } = await post('getUserDetailsByUsername', JSON.stringify(params.username), {}, headers())
+    } = await post('getUserDetailsByUsername', JSON.stringify(username), {}, headers())
     const loggedUserDetails: User = await get('getLoggedUserDetails', {}, headers())
     const isCurrentUser = loggedUserDetails.isLoggedIn && loggedUserDetails.username === data.username
     return (

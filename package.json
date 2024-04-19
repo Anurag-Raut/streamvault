@@ -14,7 +14,7 @@
     "dev": "yarn workspace frontend dev",
     "backend": "sudo docker start postgres && yarn workspace backend serve ",
     "build": "yarn workspace frontend build",
-    "studio":"npx prisma studio --schema='/home/anurag/projects/streamvault/packages/backend/postgres/schema.prisma'"
+    "subtitler":"yarn workspace subtitler start"
 
   }
 }

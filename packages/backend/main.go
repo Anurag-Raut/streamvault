@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"os/exec"
@@ -46,6 +49,59 @@ func failOnError(err error, msg string) {
 func homePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	fmt.Fprintf(w, "Home Page")
+}
+
+func SendToSubtitler(message, streamId string, duration ,totalDuration float64, segmentNumber int) error {
+	var response struct {
+		StreamId      string `json:"streamId"`
+		Message       string `json:"message"`
+		Duration      float64    `json:"duration"`
+		SegmentNumber int    `json:"segmentNumber"`
+		TotalDuration float64 `json:"totalDuration"`
+	}
+	fmt.Println("Sending to subtitler:", message)
+
+	response.StreamId = streamId
+	response.Message = message
+	response.Duration = duration
+	response.SegmentNumber = segmentNumber
+	response.TotalDuration = totalDuration
+
+	jsonPayload, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+	fmt.Println("jsonPayload:")
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text",env.Get("SUBTITLER_API_URL","http://localhost:5000")), bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return err
+	}
+	var responseText struct {
+		Message string `json:"message"`
+		Success bool   `json:"success"`
+	}
+	err = json.Unmarshal(body, &responseText)
+
+	if err != nil {
+		fmt.Println("Error unmarshalling response body:", err)
+		return err
+	}
+	fmt.Println("Response from subtitler:", responseText.Message, responseText.Success)
+
+	return nil
+
 }
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -95,14 +151,22 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		"-g", "20",
 		"-hls_time", "5",
 		"-hls_list_size", "0",
+		"-progress", "pipe:1",
 		// `/home/anurag/projects/streamvault/packages/backend/hls/output.m3u8`,
 		fmt.Sprintf("%s/%s.m3u8", dirPath, streamId),
 	)
 	stdin, err := cmd.StdinPipe()
+
 	if err != nil {
 		fmt.Println("Error getting stdin pipe:", err)
 		return
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Println("Error getting stderr pipe:", err)
+		return
+	}
+
 
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
@@ -110,16 +174,82 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-        conn.Close()
-        postgres.UpdateStatus(streamId, false)
-        fmt.Println("WebSocket connection closed")
-    }()
+		conn.Close()
+		postgres.UpdateStatus(streamId, false)
+		fmt.Println("WebSocket connection closed")
+	}()
+
+	go func() {
+		defer stderr.Close()
+		scanner := bufio.NewScanner(stderr)
+		var totalDuration float64
+		for scanner.Scan() {
+			line := scanner.Text()
+			// Parse the progress information from the stderr output
+			// Progress information typically starts with "frame="
+			if strings.Contains(line, "Opening '") && strings.Contains(line, "' for writing") {
+				// Extract the file path between the single quotes
+				start := strings.Index(line, "'") + 1
+				end := strings.LastIndex(line, "'")
+				filePath := line[start:end]
+				parts := strings.Split(filePath, "/")
+
+				// Get the file name from the file path
+				if strings.HasSuffix(filePath, ".ts") && !strings.HasSuffix(filePath, ".m3u8.tmp") {
+					cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath)
+					output, err := cmd.CombinedOutput()
+					if err != nil {
+						fmt.Println("Error executing ffprobe command:", err)
+						return
+					}
+
+					durSting := string(output)
+					durSting = strings.TrimSuffix(durSting, "\n")
+					duration, err := strconv.ParseFloat(durSting,64)
+					
+					if err != nil {
+						fmt.Println("Error converting duration:", err)
+
+						return
+					}
+
+					fmt.Println("Duration:", duration)
+					var a = strings.Split(parts[len(parts)-1], ".")[0]
+					segmentNumberString := strings.TrimPrefix(a, streamId)
+					segmentNumber, err := strconv.Atoi(segmentNumberString)
+					if err != nil {
+						fmt.Println("Error converting segment number:", err)
+						return
+					}
+
+					fmt.Println("Segment Number:", segmentNumber)
+
+					err = SendToSubtitler(parts[len(parts)-2]+"/"+parts[len(parts)-1], streamId, duration,totalDuration, segmentNumber)
+					if err != nil {
+						fmt.Println("Error sending to subtitler:", err)
+						return
+					}
+					totalDuration += duration
+
+				}
+
+			}
+		}
+	}()
 
 	go func() {
 		defer stdin.Close()
 		defer conn.Close() // Close the WebSocket connection when this goroutine exits
 		defer func() {
 			postgres.UpdateStatus(streamId, false)
+			_,err:=http.Post(fmt.Sprintf("%s/stop_transcription", env.Get("SUBTITLER_API_URL","http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(fmt.Sprintf(`{"streamId": "%s"}`, streamId))))
+			if err!=nil {
+				fmt.Println("Error stopping transcription:", err)
+			}
+
+			
+
+
 		}()
 		for {
 			_, message, err := conn.ReadMessage()
@@ -153,24 +283,31 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	// get the stream data which is json
 	var streamRequest StreamRequest
 	if err := json.NewDecoder(r.Body).Decode(&streamRequest); err != nil {
-		http.Error(w, "Invalid request bauthMiddleWareody", http.StatusBadRequest)
+		utils.SendError(w, "Invalid request bauthMiddleWareody", http.StatusBadRequest)
 		return
 	}
-	userId:=r.Context().Value("userId").(string)
+	userId := r.Context().Value("userId").(string)
 
-	streamId, err := postgres.AddStream(streamRequest.Title, streamRequest.Description, streamRequest.Category, streamRequest.Thumbnail,userId)
+	streamId, err := postgres.AddStream(streamRequest.Title, streamRequest.Description, streamRequest.Category, streamRequest.Thumbnail, userId)
 	if err != nil {
 		fmt.Println("Error adding stream:", err)
-		http.Error(w, "Error adding stream", http.StatusInternalServerError)
+		utils.SendError(w, "Error adding stream", http.StatusInternalServerError)
 		return
 	}
+
 	responseJson := fmt.Sprintf(`{"streamId": "%s"}`, streamId)
+	_,err=http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL","http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+	if err != nil {
+		fmt.Println("Error starting transcription:", err)
+		utils.SendError(w, "Error starting transcription", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS") // Adjust the allowed methods accordingly
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	
+
 	w.Write([]byte(responseJson))
 }
 
@@ -209,10 +346,9 @@ func authMiddleWare(next http.Handler) http.Handler {
 		// Log the incoming request method and URL
 		println("Incoming request:", r.Method, r.URL.Path)
 
-
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
-			utils.SendError(w,"No token found",http.StatusUnauthorized)
+			utils.SendError(w, "No token found", http.StatusUnauthorized)
 			return
 		}
 		tokenString := cookie.Value
@@ -223,12 +359,12 @@ func authMiddleWare(next http.Handler) http.Handler {
 
 		if err != nil {
 			// http.Error(w, "Invalid token", http.StatusUnauthorized)
-			utils.SendError(w,"Invalid token",http.StatusUnauthorized)
+			utils.SendError(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 
 		if !token.Valid {
-			utils.SendError(w,"Invalid Token",http.StatusUnauthorized)
+			utils.SendError(w, "Invalid Token", http.StatusUnauthorized)
 			return
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
@@ -239,36 +375,33 @@ func authMiddleWare(next http.Handler) http.Handler {
 				userExists, _ := postgres.UserExists(userId)
 
 				if !userExists {
-					utils.SendError(w,"User does not exits",http.StatusUnsupportedMediaType)
+					utils.SendError(w, "User does not exits", http.StatusUnsupportedMediaType)
 					return
 				}
 
 				ctx := context.WithValue(r.Context(), "userId", userId)
-				r=r.WithContext(ctx)
-
+				r = r.WithContext(ctx)
 
 			} else {
 				// http.Error(w, "Username claim not found", http.StatusUnauthorized)
-				utils.SendError(w,"UserId clain not found",http.StatusUnauthorized)
+				utils.SendError(w, "UserId clain not found", http.StatusUnauthorized)
 				return
 			}
 		} else {
 			// http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-			utils.SendError(w,"Invalid token claims",http.StatusUnauthorized)
+			utils.SendError(w, "Invalid token claims", http.StatusUnauthorized)
 			return
 		}
 
-		
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
 }
 
-func getVideoDataMiddleware (next http.Handler) http.Handler{
+func getVideoDataMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log the incoming request method and URL
 		println("Incoming request:", r.Method, r.URL.Path)
-
 
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
@@ -283,7 +416,7 @@ func getVideoDataMiddleware (next http.Handler) http.Handler{
 			// You should provide the secret key or the key used for signing the token here
 			return []byte("eat shit"), nil
 		})
-		fmt.Println(token,"token")
+		fmt.Println(token, "token")
 
 		if err != nil {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
@@ -308,8 +441,7 @@ func getVideoDataMiddleware (next http.Handler) http.Handler{
 				}
 
 				ctx := context.WithValue(r.Context(), "userId", userId)
-				r=r.WithContext(ctx)
-
+				r = r.WithContext(ctx)
 
 			} else {
 				http.Error(w, "Username claim not found", http.StatusUnauthorized)
@@ -320,11 +452,9 @@ func getVideoDataMiddleware (next http.Handler) http.Handler{
 			return
 		}
 
-		
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
-
 
 }
 func uploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -443,7 +573,6 @@ func UploadProfileImage(w http.ResponseWriter, r *http.Request) {
 	w.Write(responseJson)
 }
 
-
 func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/", authMiddleWare(http.HandlerFunc(homePage)))
 	mux.HandleFunc("/ws", wsEndpoint)
@@ -456,24 +585,24 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/getDashboardContent", authMiddleWare(http.HandlerFunc(postgres.GetDashboardContent)))
 
 	mux.Handle("/getVideoData", getVideoDataMiddleware(http.HandlerFunc(postgres.GetVideoData)))
-	mux.Handle("/like",authMiddleWare(http.HandlerFunc(postgres.Like)))
-	mux.Handle("/dislike",authMiddleWare(http.HandlerFunc(postgres.Dislike)))
-	mux.Handle("/removeLike",authMiddleWare(http.HandlerFunc(postgres.RemoveLike)))
-	mux.Handle("/subscribe",authMiddleWare(http.HandlerFunc(postgres.Subscribe)))
-	mux.Handle("/unsubscribe",authMiddleWare(http.HandlerFunc(postgres.Unsubscribe)))
-	mux.Handle("/getLoggedUserDetails",http.HandlerFunc(auth.GetUserDetails))
-	mux.HandleFunc("/getChats",postgres.GetChats)
-	mux.Handle("/chat",(http.HandlerFunc(chat.Chat)))
-	mux.Handle("/getCommmentsForChannel",authMiddleWare(http.HandlerFunc(postgres.GetCommmentsForCreator)))
-	mux.Handle("/getUserDetailsByUsername",(http.HandlerFunc(postgres.GetUserDetailsByUsername)))
-	mux.Handle("/getChannelSummary",authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
-	mux.Handle("/updateUserDetails",authMiddleWare(http.HandlerFunc(postgres.UpdateUserDetails)))
+	mux.Handle("/like", authMiddleWare(http.HandlerFunc(postgres.Like)))
+	mux.Handle("/dislike", authMiddleWare(http.HandlerFunc(postgres.Dislike)))
+	mux.Handle("/removeLike", authMiddleWare(http.HandlerFunc(postgres.RemoveLike)))
+	mux.Handle("/subscribe", authMiddleWare(http.HandlerFunc(postgres.Subscribe)))
+	mux.Handle("/unsubscribe", authMiddleWare(http.HandlerFunc(postgres.Unsubscribe)))
+	mux.Handle("/getLoggedUserDetails", http.HandlerFunc(auth.GetUserDetails))
+	mux.HandleFunc("/getChats", postgres.GetChats)
+	mux.Handle("/chat", (http.HandlerFunc(chat.Chat)))
+	mux.Handle("/getCommmentsForChannel", authMiddleWare(http.HandlerFunc(postgres.GetCommmentsForCreator)))
+	mux.Handle("/getUserDetailsByUsername", (http.HandlerFunc(postgres.GetUserDetailsByUsername)))
+	mux.Handle("/getChannelSummary", authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
+	mux.Handle("/updateUserDetails", authMiddleWare(http.HandlerFunc(postgres.UpdateUserDetails)))
 	mux.Handle("/uploadProfileImage", authMiddleWare(http.HandlerFunc(UploadProfileImage)))
-	mux.HandleFunc("/getGoogleUrl",auth.GetGoogleUrl)
-	mux.HandleFunc("/loginWithGoogle",auth.LoginWithGoogle)
+	mux.HandleFunc("/getGoogleUrl", auth.GetGoogleUrl)
+	mux.HandleFunc("/loginWithGoogle", auth.LoginWithGoogle)
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)
-	mux.HandleFunc("/signIn", auth.SignIn)
+	mux.HandleFunc("/signin", auth.SignIn)
 	mux.HandleFunc("/signOut", auth.SignOut)
 	mux.Handle("/hls/", http.StripPrefix("/hls/", corsFileServer(http.Dir("/home/anurag/s3mnt"))))
 }

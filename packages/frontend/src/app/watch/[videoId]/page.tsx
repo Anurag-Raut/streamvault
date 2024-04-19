@@ -38,29 +38,37 @@ export default function Watch({ params }: { params: { videoId: string } }) {
     sources: [{
       src: `http://localhost:8080/hls/${params.videoId}/${params.videoId}.m3u8`,
 
+    },],
+    subtitles :[{
+      kind: 'captions',
+      srclang: 'en',
+      label: 'English',
+      src: '/test.vtt',
+      mode:"showing",
+      // default:true/
+
     }]
+
   };
-  // useEffect(() => {
-  //   async function fetchData() {
-  //       const response=await fetch(`http://localhost:8080/getVideoData`,{
-  //           method:"POST",
-  //           headers:{
-  //               "Content-Type":"application/json"
-  //           },
-  //           body:JSON.stringify(params.videoId),
-  //           credentials:'include'
 
-  //       })
-  //       const data=await response.json()
-  //       console.log(data)
-  //       setData(data)
 
-  //   }
-  //   fetchData()
-  // }, []);
+  let captionOption = {
+    kind: 'captions',
+    srclang: 'en',
+    label: 'English',
+    src: `http://localhost:8080/hls/subtitle/${params.videoId}.vtt`,
+    mode:"showing",
+    default:true
+
+  }
 
   const handlePlayerReady = (player: any) => {
     playerRef.current = player;
+
+    setInterval(() => {
+    player.addRemoteTextTrack(captionOption);
+    },2000)
+    
 
     // You can handle player events here, for example:
     player.on('waiting', () => {
@@ -74,7 +82,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
 
   return (
 
-    <div className='w-[700px] min-h-[70%] bg-card rounded-xl overflow-hidden'>
+    <div className='w-[700px] min-h-[80%] bg-card rounded-xl overflow-hidden'>
       <VideoJS options={videoJsOptions}  onReady={handlePlayerReady} />
     </div>
   );

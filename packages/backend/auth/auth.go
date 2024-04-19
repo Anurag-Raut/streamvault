@@ -20,34 +20,56 @@ import (
 	"google.golang.org/api/option"
 )
 
+
+
 // func SignUpWithEmail(email string) {
 // Sender data.'
 var secret = []byte("eat shit")
 
+
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	var signInReq struct {
 		Username string `json:"username"`
+		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&signInReq); err != nil {
-		http.Error(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
+		fmt.Println("error hello",err.Error())
+		utils.SendError(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
 		return
 	}
+	fmt.Println(signInReq.Username,signInReq.Password)
+	isPasscordCorrect,id,err:=postgres.CheckUsernamePassword(signInReq.Username,signInReq.Password)
+	if err != nil {
+		fmt.Println("error hello",err.Error())
+		utils.SendError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if  !isPasscordCorrect {
+		fmt.Println("error hello",err.Error())
+		utils.SendError(w, fmt.Sprintf("password not matching %v", err), http.StatusUnauthorized)
+		return
+	}
+
+
+
 
 	fmt.Println(signInReq.Username)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": signInReq.Username,
+		"userId":id,
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
+		fmt.Println("errurr" ,err.Error())
+		utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -61,30 +83,42 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	}
 	http.SetCookie(w, &cookie)
+	var response = "ok"
+	resp, _ := json.MarshalIndent(response, "", "  ")
+	w.Write(resp)
 
-	w.Write([]byte("ok"))
 
 }
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	var signUpReq struct {
 		Username string `json:"username"`
+		Password string `json:"password"`
 	}
+	var id string
 	if err := json.NewDecoder(r.Body).Decode(&signUpReq); err != nil {
-		http.Error(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
+		utils.SendError(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
 		return
 	}
 	if strings.Contains(signUpReq.Username, " ") {
-		http.Error(w, "Username cannot contain spaces", http.StatusBadRequest)
+		utils.SendError(w, "Username cannot contain spaces", http.StatusBadRequest)
 		return
 	}
 
 	fmt.Println(signUpReq.Username)
-	id, err := postgres.CreateUser(signUpReq.Username, nil)
+	
+	id,err := postgres.CreateUserWithPassword(signUpReq.Username, signUpReq.Password)
+
+	if err != nil {
+		utils.SendError(w,err.Error(),http.StatusInternalServerError)
+		return
+	}
+
+
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": signUpReq.Username,
@@ -92,15 +126,16 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
+		utils.SendError(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
 		return
 	}
+
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
-		// http.Error(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
+		// utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -112,6 +147,9 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
+	var response ="ok"
+	resp, _ := json.MarshalIndent(response, "", "  ")
+	w.Write(resp)
 }
 
 func GetUserDetails(w http.ResponseWriter, r *http.Request) {
@@ -294,7 +332,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
+		utils.SendError(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -302,7 +340,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
-		// http.Error(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
+		// utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		return
 	}

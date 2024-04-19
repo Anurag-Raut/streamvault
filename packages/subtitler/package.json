@@ -1,0 +1,13 @@
+{
+    "name": "subtitler",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+     "start":"sudo docker start 5c7c04fb6392  &&  python3 server.py  "
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
+  

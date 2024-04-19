@@ -101,7 +101,7 @@ export default function Chat({ streamId }: { streamId: string }) {
 
     return (
         <div className="w-full h-full bg-card rounded-md flex flex-col p-3 border border-[#323232]  ">
-            <div className=" flex-col  content-start overflow overflow-auto h-full ">
+            <div className=" flex-col  content-start overflow-y-auto  h-full ">
                 {chats.map((chat, index) => (
                     <ChatBubble key={index} message={chat.message} user={chat.user} />
                 ))}

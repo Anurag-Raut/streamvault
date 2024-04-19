@@ -95,7 +95,7 @@ console.log(user.profileImage, "profile image")
     
 
     return (
-        <Link href={`/watch/${id}`} onMouseEnter={() => { setHovering(true) }} onMouseLeave={() => { setHovering(false) }} className="h-[200px] ">
+        <Link href={`/watch/${id}`} onMouseEnter={() => { setHovering(true) }} onMouseLeave={() => { setHovering(false) }} className="h-[200px] m-3 ">
             {
                 !hovering ?
 
