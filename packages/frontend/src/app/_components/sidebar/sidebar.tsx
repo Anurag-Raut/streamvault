@@ -25,9 +25,9 @@ export default async function  Sidebar({ id }: { id: string }) {
     
         },
         {
-            name: "Settings",
+            name: "Studio",
             icon: "",
-            path: "/settings"
+            path: "/studio"
         },
         {
             name: "LogOut",

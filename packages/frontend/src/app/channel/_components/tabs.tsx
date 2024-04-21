@@ -30,7 +30,7 @@ export default function Tabs({ username }: {
 
                 {
                     tabs.map((tab, index) => (
-                        <Link href={tab.pathname} className={`mr-5 h-full w-fit flex flex-col justify-end min-w-[100px] items-center ${(previousPath) !== (tab.pathname) && "hover:border-b-4 hover:border-gray-400" }  `}>
+                        <Link href={tab.pathname} className={`mr-5 h-full w-fit flex flex-col justify-end min-w-[100px] items-center ${(previousPath) !== (tab.pathname) && "hover:border-b-4 hover:border-gray-400"}  `}>
                             <div className={`py-3 text-xl font-extrabold ${(previousPath) !== (tab.pathname) && "opacity-50"}`}>
 
                                 {tab.name}

@@ -15,7 +15,7 @@ export default async function HomePage({ params }: {
   // console.log(data,'data');  
 
   return (
-    <main className="w-full h-full flex flex-row ">
+    <main className="w-full h-[calc(100vh-82px)] min-h-[calc(100vh-82px)]  flex flex-row ">
       <Sidebar id={params.id} />
       <Home />
     </main>

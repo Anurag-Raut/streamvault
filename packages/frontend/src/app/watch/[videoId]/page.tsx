@@ -66,7 +66,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
     playerRef.current = player;
 
     setInterval(() => {
-    player.addRemoteTextTrack(captionOption);
+    player?.addRemoteTextTrack(captionOption);
     },2000)
     
 

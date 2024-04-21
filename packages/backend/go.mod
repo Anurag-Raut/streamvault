@@ -53,6 +53,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/lucsky/cuid v1.2.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
 	github.com/rs/cors v1.10.1 // indirect
 	github.com/u2takey/ffmpeg-go v0.5.0 // indirect

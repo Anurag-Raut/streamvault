@@ -103,7 +103,7 @@ console.log(user.profileImage, "profile image")
 
 
                     :
-                    <div className=' w-[340px] h-[191px] rounded-xl'>
+                    <div className=' w-[340px] h-[191px] rounded-xl overflow-hidden'>
                         <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
                     </div>
 

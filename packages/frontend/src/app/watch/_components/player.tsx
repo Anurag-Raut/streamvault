@@ -40,7 +40,7 @@ const VideoJS: React.FC<VideoJSProps> = (props) => {
       // Add subtitles
       if (options.subtitles) {
         options.subtitles.forEach((subtitle: any) => {
-          player.addRemoteTextTrack(subtitle,false);
+          player?.addRemoteTextTrack(subtitle,false);
         });
       }
     }

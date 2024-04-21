@@ -50,7 +50,7 @@ export default function Home() {
 
 
     return (
-        <div className="w-[100%] p-5 grid xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-y-[90px] overflow-y-auto">
+        <div className="w-[100%] h-[calc(100vh - 80px)] p-5 grid xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-y-[90px] overflow-y-auto">
             {loading ? Array.from({ length: 21 }, (_, i) => (
                 <div data-theme="mytheme" key={i} className="skeleton w-[340px] h-[200px]  "></div>
             ))
@@ -84,12 +84,7 @@ export default function Home() {
 
 
                 }, index: number) => (
-
-
-
                     <VideoCard title={title} thumbnail={thumbnail} id={id} user={user} createdAt={createdAt} views={views} />
-
-
                 ))
 
             }

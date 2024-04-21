@@ -35,10 +35,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
-        <NextTopLoader color="#cc00ff"  />
-        <main className="flex flex-row  h-screen items-center justify-center text-white pt-[80px] bg-background   ">
+        <NextTopLoader color="#cc00ff" />
+        <main className="  h-full min-h-screen text-white  bg-background pt-[80px]   ">
 
           {/* <RecoilRoot> */}
+
 
           <Header />
 

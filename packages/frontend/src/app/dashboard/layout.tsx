@@ -13,7 +13,7 @@ export default function Layout({ children }: {
     return (
         <RecoilRoot>
 
-            <div className="w-[100%] h-full">
+            <div className="w-[100%] h-full ">
                 {children}
             </div>
          </RecoilRoot>

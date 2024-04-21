@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { get, post } from "~/api";
 import Avatar from "~/app/_components/avatar";
-import Tabs from "../_compoents/tabs";
+import Tabs from "../_components/tabs";
 import { ReactNode } from "react";
 import { User } from "~/app/_components/header";
 import Link from "next/link";

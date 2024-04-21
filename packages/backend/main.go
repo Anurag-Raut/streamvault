@@ -17,6 +17,7 @@ import (
 	"streamvault/auth"
 	"streamvault/chat"
 	"streamvault/postgres"
+	"streamvault/rmq"
 	"streamvault/utils"
 
 	"os"
@@ -51,12 +52,12 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Home Page")
 }
 
-func SendToSubtitler(message, streamId string, duration ,totalDuration float64, segmentNumber int) error {
+func SendToSubtitler(message, streamId string, duration, totalDuration float64, segmentNumber int) error {
 	var response struct {
-		StreamId      string `json:"streamId"`
-		Message       string `json:"message"`
-		Duration      float64    `json:"duration"`
-		SegmentNumber int    `json:"segmentNumber"`
+		StreamId      string  `json:"streamId"`
+		Message       string  `json:"message"`
+		Duration      float64 `json:"duration"`
+		SegmentNumber int     `json:"segmentNumber"`
 		TotalDuration float64 `json:"totalDuration"`
 	}
 	fmt.Println("Sending to subtitler:", message)
@@ -72,7 +73,7 @@ func SendToSubtitler(message, streamId string, duration ,totalDuration float64, 
 		return err
 	}
 	fmt.Println("jsonPayload:")
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text",env.Get("SUBTITLER_API_URL","http://localhost:5000")), bytes.NewBuffer(jsonPayload))
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -167,7 +168,6 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Error starting command:", err)
 		return
@@ -205,8 +205,8 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 
 					durSting := string(output)
 					durSting = strings.TrimSuffix(durSting, "\n")
-					duration, err := strconv.ParseFloat(durSting,64)
-					
+					duration, err := strconv.ParseFloat(durSting, 64)
+
 					if err != nil {
 						fmt.Println("Error converting duration:", err)
 
@@ -224,7 +224,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 
 					fmt.Println("Segment Number:", segmentNumber)
 
-					err = SendToSubtitler(parts[len(parts)-2]+"/"+parts[len(parts)-1], streamId, duration,totalDuration, segmentNumber)
+					err = SendToSubtitler(parts[len(parts)-2]+"/"+parts[len(parts)-1], streamId, duration, totalDuration, segmentNumber)
 					if err != nil {
 						fmt.Println("Error sending to subtitler:", err)
 						return
@@ -242,13 +242,10 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		defer conn.Close() // Close the WebSocket connection when this goroutine exits
 		defer func() {
 			postgres.UpdateStatus(streamId, false)
-			_,err:=http.Post(fmt.Sprintf("%s/stop_transcription", env.Get("SUBTITLER_API_URL","http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(fmt.Sprintf(`{"streamId": "%s"}`, streamId))))
-			if err!=nil {
+			_, err := http.Post(fmt.Sprintf("%s/stop_transcription", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(fmt.Sprintf(`{"streamId": "%s"}`, streamId))))
+			if err != nil {
 				fmt.Println("Error stopping transcription:", err)
 			}
-
-			
-
 
 		}()
 		for {
@@ -296,7 +293,7 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseJson := fmt.Sprintf(`{"streamId": "%s"}`, streamId)
-	_,err=http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL","http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+	_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
 	if err != nil {
 		fmt.Println("Error starting transcription:", err)
 		utils.SendError(w, "Error starting transcription", http.StatusInternalServerError)
@@ -572,6 +569,63 @@ func UploadProfileImage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(responseJson)
 }
+func uploadVideo(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form
+	err := r.ParseMultipartForm(1 << 30) // 1 GB
+	if err != nil {
+		utils.SendError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get file data from request
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		utils.SendError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	videoid := uuid.New().String()
+	uploadPath := "/home/anurag/s3mnt/vod"
+
+	// Create the uploads directory if it doesn't exist
+	err = os.MkdirAll(uploadPath, 0777)
+	if err != nil {
+		utils.SendError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fileExt := filepath.Ext(handler.Filename)
+
+	fileName := videoid + fileExt
+	fmt.Println(fileName)
+
+	// Create a new file in the server
+	outFile, err := os.Create(fmt.Sprintf("%s/%s", uploadPath, fileName))
+	if err != nil {
+		utils.SendError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer outFile.Close()
+	videoData, err := io.ReadAll(file)
+	if err != nil {
+		utils.SendError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Copy the file data to the server file
+	os.WriteFile(fmt.Sprintf("%s/%s", uploadPath, fileName), videoData, os.ModePerm)
+
+	// Respond with success
+	w.WriteHeader(http.StatusOK)
+	var videoId = videoid
+	responseJson, err := json.Marshal(videoId)
+	if err != nil {
+		utils.SendError(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(responseJson)
+
+}
 
 func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/", authMiddleWare(http.HandlerFunc(homePage)))
@@ -597,7 +651,9 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/getUserDetailsByUsername", (http.HandlerFunc(postgres.GetUserDetailsByUsername)))
 	mux.Handle("/getChannelSummary", authMiddleWare(http.HandlerFunc(postgres.GetChannelSummary)))
 	mux.Handle("/updateUserDetails", authMiddleWare(http.HandlerFunc(postgres.UpdateUserDetails)))
+	mux.Handle("/uploadVideo", authMiddleWare(http.HandlerFunc(uploadVideo)))
 	mux.Handle("/uploadProfileImage", authMiddleWare(http.HandlerFunc(UploadProfileImage)))
+	mux.Handle("/saveVod", authMiddleWare(http.HandlerFunc(postgres.SaveVod)))
 	mux.HandleFunc("/getGoogleUrl", auth.GetGoogleUrl)
 	mux.HandleFunc("/loginWithGoogle", auth.LoginWithGoogle)
 	mux.HandleFunc("/login", login)
@@ -613,6 +669,10 @@ func main() {
 		panic(err)
 	}
 
+	rmq.ConnectRMQ()
+	defer rmq.CloseConnection()
+
+	go rmq.ConsumeMessages("vods")
 	postgres.Connect()
 	defer postgres.Disconnect()
 	go chat.HandleMessages()

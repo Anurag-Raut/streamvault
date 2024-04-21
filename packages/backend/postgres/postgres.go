@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"streamvault/rmq"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -79,7 +80,9 @@ func GetStreams(w http.ResponseWriter, r *http.Request) {
 	rows, err := pool.Query(ctx,
 		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming",v."createdAt", u.username ,u.id,v."views",u."profileImage"
 		 FROM "Video" v
-		 JOIN "User" u ON v."userId" = u.id`)
+		 JOIN "User" u ON v."userId" = u.id
+		 WHERE v."isProcessed" = True
+		 `)
 	if err != nil {
 		sendError(w, err.Error())
 		return
@@ -1091,3 +1094,57 @@ func CreateUserWithPassword(username string, password string) (string, error) {
 	return "",fmt.Errorf("Already signed Up , try to sign in")
 
 }
+
+func SaveVod(w http.ResponseWriter,r *http.Request){
+
+	var request struct {
+		VideoId string `json:"videoId"`
+		Thumbnail string `json:"thumbnail"`
+		Title string `json:"title"`
+		Description string `json:"description"`
+		Category string `json:"category"`
+		Visibility int `json:"visibility"`
+		
+	}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		sendError(w, "error decoding videoId")
+		return
+	}
+	ctx := context.Background()
+	_, err = pool.Exec(ctx,
+		`INSERT INTO "Video" (id, title, description, category, thumbnail, "isStreaming", "userId","isVOD","isProcessed","visibility")
+		 VALUES ($1, $2, $3, $4, $5, false, $6,true,false,$7)
+		`,
+		request.VideoId, request.Title, request.Description, request.Category, request.Thumbnail, r.Context().Value("userId"),request.Visibility)
+
+	if err != nil {
+		fmt.Println(err, "error saving video")
+		sendError(w, "error saving video")
+		return
+	}
+	err=rmq.PublishMessage(request.VideoId, "vods")
+	if err != nil {
+		fmt.Println(err, "error publishing message")
+		sendError(w, "error publishing message")
+		return
+	}
+
+	var response struct {
+		Message string `json:"message"`
+	}
+	response.Message = "Saved"
+	jsonResponse, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		sendError(w, "error marshalling response")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+
+}
+
+
+

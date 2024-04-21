@@ -49,7 +49,7 @@ export default function SignInPage() {
     }
 
     return (
-        <div className="w-full h-full flex justify-center items-center">
+        <div className="w-full h-full h-[calc(100vh-81px)] min-h-[calc(100vh-81px)] flex justify-center items-center">
             <div className=" w-[500px] h-fit p-5 bg-background3 rounded-xl ">
                 <div className="my-3 mb-5 ">
                     <p className="text-2xl font-bold ">    Welcome to Streamvault</p>
