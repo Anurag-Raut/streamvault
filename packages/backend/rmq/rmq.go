@@ -11,14 +11,16 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
 var pool *pgxpool.Pool
 var connection *amqp.Connection
 
 func ConnectRMQ() {
 	fmt.Println("RabbitMQ in Golang: Getting started tutorial")
 	var err error
-	connection, err = amqp.Dial("amqp://guest:guest@localhost:5672/")
+	connection, err = amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 	pool, err = pgxpool.Connect(context.Background(), "host=localhost user=postgres password=postgres dbname=streamvault sslmode=disable")
@@ -26,7 +28,7 @@ func ConnectRMQ() {
 	if err != nil {
 		fmt.Println("Error connecting to database")
 	}
-	
+
 	err = MakeQueue("vods")
 	if err != nil {
 		fmt.Println("error creating queue")
@@ -134,7 +136,7 @@ func ConsumeMessages(queueName string) error {
 func VideoIdToHls(videoId string) error {
 	dirPath := fmt.Sprintf("/home/anurag/s3mnt/%s", videoId)
 	filePattern := fmt.Sprintf("/home/anurag/s3mnt/vod/%s.mkv", videoId)
-	err:=os.Mkdir(dirPath, 0755)
+	err := os.Mkdir(dirPath, 0755)
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
 		return err
@@ -158,7 +160,7 @@ func VideoIdToHls(videoId string) error {
 		return err
 	}
 
-	err=UpdateVodStatus(videoId)
+	err = UpdateVodStatus(videoId)
 	if err != nil {
 		fmt.Println("Error updating vod status:", err)
 		return err

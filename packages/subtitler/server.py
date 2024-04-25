@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import pika
 import threading
-import time
 from transcriber import transcribe_audio,stop_transcription,start_transcription
 import json
 
@@ -122,4 +121,4 @@ def startTranscription():
         return jsonify({'success': False})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port=5000,host='0.0.0.0')

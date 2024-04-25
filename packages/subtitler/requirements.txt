@@ -1,0 +1,3 @@
+flask
+pika
+faster_whisper

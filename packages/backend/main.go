@@ -73,7 +73,7 @@ func SendToSubtitler(message, streamId string, duration, totalDuration float64, 
 		return err
 	}
 	fmt.Println("jsonPayload:")
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), bytes.NewBuffer(jsonPayload))
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -242,7 +242,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		defer conn.Close() // Close the WebSocket connection when this goroutine exits
 		defer func() {
 			postgres.UpdateStatus(streamId, false)
-			_, err := http.Post(fmt.Sprintf("%s/stop_transcription", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(fmt.Sprintf(`{"streamId": "%s"}`, streamId))))
+			_, err := http.Post(fmt.Sprintf("%s/stop_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(fmt.Sprintf(`{"streamId": "%s"}`, streamId))))
 			if err != nil {
 				fmt.Println("Error stopping transcription:", err)
 			}
@@ -293,7 +293,7 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseJson := fmt.Sprintf(`{"streamId": "%s"}`, streamId)
-	_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://localhost:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+	_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
 	if err != nil {
 		fmt.Println("Error starting transcription:", err)
 		utils.SendError(w, "Error starting transcription", http.StatusInternalServerError)
@@ -478,7 +478,7 @@ func uploadThumbnail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the home directory
-	homeDir := os.Getenv("HOME")
+	homeDir := "/home/anurag/"
 	if homeDir == "" {
 		http.Error(w, "Unable to get home directory", http.StatusInternalServerError)
 		return
@@ -536,7 +536,7 @@ func UploadProfileImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the home directory
-	homeDir := os.Getenv("HOME")
+	homeDir := "/home/anurag/"
 	if homeDir == "" {
 		http.Error(w, "Unable to get home directory", http.StatusInternalServerError)
 		return
@@ -664,6 +664,7 @@ func setupRoutes(mux *http.ServeMux) {
 }
 
 func main() {
+	fmt.Println("heelo staring go")
 	mux := http.NewServeMux()
 	if err := env.Load(".env"); err != nil {
 		panic(err)

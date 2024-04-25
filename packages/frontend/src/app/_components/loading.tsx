@@ -1,23 +1,21 @@
-
-import { ping } from 'ldrs'
-import { motion } from 'framer-motion'
-import { bouncy } from 'ldrs'
-
-bouncy.register()
-
-
-
-ping.register()
+import { motion } from 'framer-motion';
 
 export default function Loader() {
-    return (
+    // Dynamically import ldrs modules
+    import('ldrs').then(ldrs => {
+        const { ping, bouncy } = ldrs;
 
+        // Register components
+        ping.register();
+        bouncy.register();
+    });
+
+    return (
         <div>
             <l-ping
                 size="120"
                 speed="2"
                 color="purple"
-
             ></l-ping>
             <motion.div
                 initial={{ opacity: 1 }}
@@ -31,14 +29,9 @@ export default function Loader() {
                         size="17"
                         speed="1.75"
                         color="white"
-
                     ></l-bouncy>
                 </div>
-
             </motion.div>
-
         </div>
-    )
-
-
+    );
 }

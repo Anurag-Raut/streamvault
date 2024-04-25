@@ -1,9 +1,9 @@
 "use client";
-import { redirect, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { toast } from "react-toastify";
 import { get } from "~/api";
-import 'ldrs/ring'
+
 import Loader from "../_components/loading";
 
 // Manually defined

@@ -1,0 +1,54 @@
+version: "3.8"
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - network-app
+    
+  database:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    networks:
+      - network-app
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=streamvault
+    volumes:
+    - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  subtitler:
+    build: ./packages/subtitler
+    ports:
+      - "5000:5000"
+    depends_on:
+      - rabbitmq
+    networks:
+      - network-app
+    volumes:
+    - /home/anurag/s3mnt:/home/anurag/s3mnt
+
+
+  app:
+    build: ./packages/backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - rabbitmq
+      - database
+    networks:
+      - network-app
+    volumes:
+    - /home/anurag/s3mnt:/home/anurag/s3mnt
+
+    
+
+networks:
+  network-app:
+  
+
+
+  

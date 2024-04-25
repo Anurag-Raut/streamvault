@@ -19,20 +19,20 @@ import (
 var pool *pgxpool.Pool
 
 func HashPassword(password string) (string, error) {
-    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-    return string(bytes), err
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
 func CheckPasswordHash(password, hash string) bool {
 	fmt.Println(hash)
-    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	fmt.Println(err,"errrr",hash)
-    return err == nil
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	fmt.Println(err, "errrr", hash)
+	return err == nil
 }
 
 func Connect() {
 	var err error
-	pool, err = pgxpool.Connect(context.Background(), "host=localhost user=postgres password=postgres dbname=streamvault sslmode=disable")
+	pool, err = pgxpool.Connect(context.Background(), "host=database user=postgres password=postgres dbname=streamvault sslmode=disable")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
@@ -164,7 +164,7 @@ func CreateUser(username string, profileImage *string) (string, error) {
 func UpdateStatus(streamId string, status bool) error {
 	ctx := context.Background()
 	_, err := pool.Exec(ctx,
-		`UPDATE videos
+		`UPDATE video
 		 SET is_streaming = $1
 		 WHERE id = $2`,
 		status, streamId)
@@ -1032,9 +1032,9 @@ func UpdateUserDetails(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CheckUsernamePassword(username string, password string) (bool,string, error) {
+func CheckUsernamePassword(username string, password string) (bool, string, error) {
 	ctx := context.Background()
-	var hashedPassword,id string
+	var hashedPassword, id string
 
 	err := pool.QueryRow(ctx,
 		`SELECT p.password, u.id
@@ -1042,16 +1042,16 @@ func CheckUsernamePassword(username string, password string) (bool,string, error
 		JOIN "Password" p ON u.username = p.username
 		WHERE u.username = $1;
 		  `,
-		username).Scan(&hashedPassword,&id)
+		username).Scan(&hashedPassword, &id)
 	if err != nil {
-		return false,"", err
+		return false, "", err
 	}
-	correct:=CheckPasswordHash(password,hashedPassword)
+	correct := CheckPasswordHash(password, hashedPassword)
 	if !correct {
-		return false,"",fmt.Errorf("Wrong password")
+		return false, "", fmt.Errorf("Wrong password")
 	}
 
-	return true,id, nil
+	return true, id, nil
 }
 
 func CreateUserWithPassword(username string, password string) (string, error) {
@@ -1059,9 +1059,9 @@ func CreateUserWithPassword(username string, password string) (string, error) {
 	var id string
 
 	hash, err := HashPassword(password)
-	if err!=nil {
-		return "",fmt.Errorf("error hashing password")
-	} 
+	if err != nil {
+		return "", fmt.Errorf("error hashing password")
+	}
 	fmt.Println(hash)
 
 	err = pool.QueryRow(ctx,
@@ -1088,23 +1088,22 @@ func CreateUserWithPassword(username string, password string) (string, error) {
 			return "", err2
 		}
 
-		return id,nil
+		return id, nil
 
 	}
-	return "",fmt.Errorf("Already signed Up , try to sign in")
+	return "", fmt.Errorf("Already signed Up , try to sign in")
 
 }
 
-func SaveVod(w http.ResponseWriter,r *http.Request){
+func SaveVod(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
-		VideoId string `json:"videoId"`
-		Thumbnail string `json:"thumbnail"`
-		Title string `json:"title"`
+		VideoId     string `json:"videoId"`
+		Thumbnail   string `json:"thumbnail"`
+		Title       string `json:"title"`
 		Description string `json:"description"`
-		Category string `json:"category"`
-		Visibility int `json:"visibility"`
-		
+		Category    string `json:"category"`
+		Visibility  int    `json:"visibility"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -1116,14 +1115,14 @@ func SaveVod(w http.ResponseWriter,r *http.Request){
 		`INSERT INTO "Video" (id, title, description, category, thumbnail, "isStreaming", "userId","isVOD","isProcessed","visibility")
 		 VALUES ($1, $2, $3, $4, $5, false, $6,true,false,$7)
 		`,
-		request.VideoId, request.Title, request.Description, request.Category, request.Thumbnail, r.Context().Value("userId"),request.Visibility)
+		request.VideoId, request.Title, request.Description, request.Category, request.Thumbnail, r.Context().Value("userId"), request.Visibility)
 
 	if err != nil {
 		fmt.Println(err, "error saving video")
 		sendError(w, "error saving video")
 		return
 	}
-	err=rmq.PublishMessage(request.VideoId, "vods")
+	err = rmq.PublishMessage(request.VideoId, "vods")
 	if err != nil {
 		fmt.Println(err, "error publishing message")
 		sendError(w, "error publishing message")
@@ -1145,6 +1144,3 @@ func SaveVod(w http.ResponseWriter,r *http.Request){
 	w.Write(jsonResponse)
 
 }
-
-
-
