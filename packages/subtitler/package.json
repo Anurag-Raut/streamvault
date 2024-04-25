@@ -1,0 +1,13 @@
+{
+    "name": "subtitler",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+     "start":"sudo docker start rabbitmq  &&  python3 server.py  "
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
+  

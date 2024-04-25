@@ -5,6 +5,39 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+    eslint:{
+        ignoreDuringBuilds: true,
+        
+
+    },
+    reactStrictMode: false,
+    images: {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: "**",
+         
+          },
+          {
+            protocol: 'http',
+            hostname:"**"
+          }
+        ],
+      },
+      async headers() {
+        return [
+          {
+            source: '/watch',
+            headers: [
+              {
+                key: 'Cache-Control',
+                value: 'no-store',
+              },
+            ],
+          },
+        ]
+      },
+};
 
 export default config;
