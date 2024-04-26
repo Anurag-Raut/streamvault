@@ -18,9 +18,10 @@ jobs:
       - name: Test docker
         run: docker --version
       - name: Add .env file
-        run: touch ./packages/backend/.env && echo `ANURAG="anurag"` > ./packages/backend/.env
+        run: touch ./packages/backend/.env && echo 'ANURAG="anurag"' >> ./packages/backend/.env
       - name: check if env file is created
         run: cat ./packages/backend/.env
+
       # - name: remove previous containers
       #   run: docker compose down
       # - name: Build the stack
