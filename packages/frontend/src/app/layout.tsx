@@ -1,7 +1,6 @@
 import "~/styles/globals.css";
 import { Inter } from "next/font/google";
 import Header from "./_components/header";
-import { RecoilRoot } from "recoil";
 import { ToastContainer, toast } from 'react-toastify';
 import NextTopLoader from 'nextjs-toploader';
 

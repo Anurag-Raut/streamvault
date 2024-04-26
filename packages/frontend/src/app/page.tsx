@@ -1,6 +1,4 @@
-// "use client";
-import Link from "next/link";
-// import { authOptions } from "~/server/auth";
+
 import Sidebar from "./_components/sidebar/sidebar";
 import Home from "./_components/home";
 
