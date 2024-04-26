@@ -14,7 +14,7 @@ export default async function HomePage({ params }: {
 
   return (
     <main className="w-full h-[calc(100vh-82px)] min-h-[calc(100vh-82px)]  flex flex-row ">
-      <Sidebar id={params.id} />
+      {/* <Sidebar id={params.id} /> */}
       <Home />
     </main>
   );

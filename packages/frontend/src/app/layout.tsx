@@ -40,7 +40,7 @@ export default function RootLayout({
           {/* <RecoilRoot> */}
 
 
-          <Header />
+          {/* <Header /> */}
 
           {children}
           {/* </RecoilRoot> */}
