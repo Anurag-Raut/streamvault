@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "sudo docker start rabbitmq && go run main.go ",
-    "dbStart":"npx prisma db push --schema=/home/anurag/projects/streamvault/packages/backend/postgres/schema.prisma && npx prisma db push --schema=/home/anurag/projects/streamvault/packages/backend/postgres/schema.prisma"
+    "serve": "sudo docker start rabbitmq && go run main.go "
   },
   "keywords": [],
   "author": "",
