@@ -37,7 +37,7 @@ export default function CustomizeComponent({ username, profileImage }: {
             const formdata = new FormData()
             formdata.append('profileImage', files?.[0] as Blob)
 
-            // const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata,{withCredentials:true})
+            // const res=await axios.post('${process.env.NEXT_PUBLIC_BACKEND_URL}/uploadThumbnail',formdata,{withCredentials:true})
             const res: {
                 profileImagePath: string
             } = await post('uploadProfileImage', formdata, {
@@ -45,7 +45,7 @@ export default function CustomizeComponent({ username, profileImage }: {
 
             })
             console.log(res.profileImagePath, "res")
-            const profileImageUrl = "http://localhost:8080/hls/" + res.profileImagePath;
+            const profileImageUrl = "${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/" + res.profileImagePath;
             console.log(profileImageUrl, "thumbnail")
 
             //update username and profile image

@@ -36,7 +36,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
 
     fluid: true,
     sources: [{
-      src: `http://localhost:8080/hls/${params.videoId}/${params.videoId}.m3u8`,
+      src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/${params.videoId}/${params.videoId}.m3u8`,
 
     },],
     subtitles :[{
@@ -56,7 +56,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
     kind: 'captions',
     srclang: 'en',
     label: 'English',
-    src: `http://localhost:8080/hls/subtitle/${params.videoId}.vtt`,
+    src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/subtitle/${params.videoId}.vtt`,
     mode:"showing",
     default:true
 

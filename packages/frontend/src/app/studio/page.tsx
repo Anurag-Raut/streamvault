@@ -18,7 +18,7 @@ export default function Channel() {
             try {
 
 
-                // const res=await fetch(`http://localhost:8080/getUserId`,{
+                // const res=await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/getUserId`,{
                 //     method:"GET",
                 //     headers:{
                 //         "Content-Type":"application/json"

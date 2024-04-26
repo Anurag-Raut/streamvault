@@ -15,7 +15,7 @@ export default function UploadVideo({ setVideo }: { setVideo: any }) {
         setUploading(true)
         const formData = new FormData()
         formData.append("file", file)
-        const res = await axios.post("http://localhost:8080/uploadVideo", formData, {
+        const res = await axios.post("${process.env.NEXT_PUBLIC_BACKEND_URL}/uploadVideo", formData, {
             onUploadProgress: (progressEvent) => {
                 console.log(progressEvent, "progress")
                 setProgress(Math.round((progressEvent?.progress ?? 0) * 100))

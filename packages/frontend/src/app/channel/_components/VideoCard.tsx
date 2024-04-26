@@ -67,7 +67,7 @@ export default function VideoCard({ title, thumbnail, id ,createdAt,views}: {
 
         fluid: true,
         sources: [{
-            src: `http://localhost:8080/hls/${id}/${id}.m3u8`,
+            src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/${id}/${id}.m3u8`,
 
         }]
     };

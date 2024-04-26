@@ -7,7 +7,7 @@
   export async function GET(req: Request){
     
     try {
-      // const response = await axios.get('http://localhost:8080/signOut')
+      // const response = await axios.get('${process.env.NEXT_PUBLIC_BACKEND_URL}/signOut')
       const response =await get('signOut',{},headers())
       console.log(response,"  response")
       // redirect("")

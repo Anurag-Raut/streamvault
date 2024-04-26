@@ -17,7 +17,7 @@ export default function UploadThumbnail({ setThumbnail }: {
         const formData = new FormData()
         formData.append("thumbnail", file)
 
-        const res=await axios.post("http://localhost:8080/uploadThumbnail",formData,{
+        const res=await axios.post("${process.env.NEXT_PUBLIC_BACKEND_URL}/uploadThumbnail",formData,{
             onUploadProgress:(progressEvent)=>{
                 console.log(progressEvent, "progress")
             },
@@ -26,7 +26,7 @@ export default function UploadThumbnail({ setThumbnail }: {
         console.log(res.data, "res")
         if(res.data.thumbnailPath){
 
-            setThumbnail("http://localhost:8080/hls/"+res.data.thumbnailPath)
+            setThumbnail("${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/"+res.data.thumbnailPath)
         }
 
 

@@ -17,7 +17,7 @@ export default function Modal() {
             const formdata = new FormData()
             formdata.append('thumbnail', files?.[0] as Blob)
 
-            // const res=await axios.post('http://localhost:8080/uploadThumbnail',formdata,{withCredentials:true})
+            // const res=await axios.post('${process.env.NEXT_PUBLIC_BACKEND_URL}/uploadThumbnail',formdata,{withCredentials:true})
             const res:{
                 thumbnailPath:string
             } = await post('uploadThumbnail', formdata, {
@@ -25,7 +25,7 @@ export default function Modal() {
 
             })
             console.log(res.thumbnailPath, "res")
-            const thumbnail = "http://localhost:8080/hls/" + res.thumbnailPath;
+            const thumbnail = "${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/" + res.thumbnailPath;
             console.log(thumbnail, "thumbnail")
             setNewStreamInfo((prev) => ({ ...prev, thumbnail: thumbnail }))
             toast.success('Thumbnail uploaded successfully')

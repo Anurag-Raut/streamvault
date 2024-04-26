@@ -51,7 +51,7 @@ export default function UploadPage() {
         }
 
         console.log(data, 'data')
-        await fetch('http://localhost:8080/saveVod', {
+        await fetch('${process.env.NEXT_PUBLIC_BACKEND_URL}/saveVod', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

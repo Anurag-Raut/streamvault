@@ -16,7 +16,7 @@ export default function Home() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // const res = await fetch('http://localhost:8080/streams', {
+                // const res = await fetch('${process.env.NEXT_PUBLIC_BACKEND_URL}/streams', {
                 //     method: "GET",
                 //     headers: {
                 //         "Content-Type": "application/json"
