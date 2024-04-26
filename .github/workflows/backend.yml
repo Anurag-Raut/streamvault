@@ -17,5 +17,7 @@ jobs:
         run: sudo usermod -aG docker $USER && sudo chmod 666 /var/run/docker.sock
       - name: Test docker
         run: docker --version
+      - name: remove previous containers
+        run: docker compose down
       - name: Build the stack
         run: docker compose up -d
