@@ -14,7 +14,7 @@ jobs:
           curl -fsSL https://get.docker.com -o get-docker.sh
           sh get-docker.sh
       - name: Add current user to docker group
-        run: sudo usermod -aG docker $USER
+        run: sudo usermod -aG docker $USER && sudo chmod 666 /var/run/docker.sock
       - name: Test docker
         run: docker --version
       - name: Build the stack
