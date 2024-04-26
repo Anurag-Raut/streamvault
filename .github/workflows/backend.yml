@@ -14,7 +14,6 @@ jobs:
           curl -fsSL https://get.docker.com -o get-docker.sh
           sh get-docker.sh
       - name: Add current user to docker group
-        if: steps.check_docker.outputs.result != 0
         run: sudo usermod -aG docker $USER
       - name: Test docker
         run: docker --version
