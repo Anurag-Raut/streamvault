@@ -4,19 +4,8 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - name: Check if Docker is installed
-        run: docker --version || echo "Docker is not installed"
-        id: check_docker
-      - name: Install Docker if not already installed
-        if: steps.check_docker.outputs.result != 0
-        run: |
-          curl -fsSL https://get.docker.com -o get-docker.sh
-          sh get-docker.sh
-      - name: Add current user to docker group
-        run: sudo usermod -aG docker $USER && sudo chmod 666 /var/run/docker.sock
-      - name: Test docker
-        run: docker --version
+      - uses: actions/checkout@v3
+    
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
     

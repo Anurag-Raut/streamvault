@@ -16,7 +16,7 @@ export default function SignInPage() {
         const code = searchParams.get('code')
         async function loginWithGoogle() {
             await post("loginWithGoogle", JSON.stringify(code))
-            router.replace("http://localhost:3000/")
+            router.replace("/")
             router.refresh()
 
         }
