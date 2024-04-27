@@ -20,7 +20,7 @@ export default async function Content({ params }: { params: { id: string } }) {
 
     
 
-    const data= await get('getDashboardContent',{},headers())
+    const data= await get('getDashboardContent',{},new Headers(headers()))
     console.log(data,"dashboard content")
     return (
         <div className="w-full h-[90%] p-5">

@@ -17,8 +17,8 @@ export default async function Layout({ params, children }: { params: { username:
         profileImage: string
         userId: string
         subscribers: number
-    } = await post('getUserDetailsByUsername', JSON.stringify(username), {}, headers())
-    const loggedUserDetails: User = await get('getLoggedUserDetails', {}, headers())
+    } = await post('getUserDetailsByUsername', JSON.stringify(username), {}, new Headers(headers()))
+    const loggedUserDetails: User = await get('getLoggedUserDetails', {}, new Headers(headers()))
     const isCurrentUser = loggedUserDetails.isLoggedIn && loggedUserDetails.username === data.username
     return (
         <div className=" h-full  w-full p-6">

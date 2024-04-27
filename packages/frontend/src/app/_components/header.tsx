@@ -15,7 +15,7 @@ export type User = {
     isLoggedIn: boolean
 }
 export default async function Header() {
-    const user: User = await get('getLoggedUserDetails', {}, headers())
+    const user: User = await get('getLoggedUserDetails', {}, new Headers(headers()))
     console.log(user, "userasdasd")
 
 

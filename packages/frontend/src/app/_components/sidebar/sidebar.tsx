@@ -9,7 +9,7 @@ import Link from "next/link";
 export default async function  Sidebar({ id }: { id: string }) {
     // const [selected, setSelected] = useState(0);
     
-    const user: User = await get('getLoggedUserDetails', {},headers() )
+    const user: User = await get('getLoggedUserDetails', {},new Headers(headers()) )
     console.log(user, "userasdasd")
 
     const sections: SectionsType[] = [

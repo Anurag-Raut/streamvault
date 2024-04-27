@@ -26,7 +26,7 @@ export default async function Comments({
         id: string
     }
 }) {
-    const data = await post('/getCommmentsForChannel', JSON.stringify(params.id), {}, headers())
+    const data = await post('/getCommmentsForChannel', JSON.stringify(params.id), {}, new Headers(headers()))
     // console.log(data, "dddaaaa")
     return (
         <div className="w-full h-full p-5">
