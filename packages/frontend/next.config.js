@@ -24,19 +24,19 @@ const config = {
           }
         ],
       },
-      async headers() {
-        return [
-          {
-            source: '/watch',
-            headers: [
-              {
-                key: 'Cache-Control',
-                value: 'no-store',
-              },
-            ],
-          },
-        ]
-      },
+      // async headers() {
+      //   return [
+      //     {
+      //       source: '/watch',
+      //       headers: [
+      //         {
+      //           key: 'Cache-Control',
+      //           value: 'no-store',
+      //         },
+      //       ],
+      //     },
+      //   ]
+      // },
 };
 
 export default config;
