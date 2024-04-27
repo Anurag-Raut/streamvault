@@ -256,7 +256,7 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 	var conf = &oauth2.Config{
 		ClientID:     GOOGLE_CLIENT_ID,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL:  "http://localhost:3000/auth/signIn",
+		RedirectURL: fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL","https://streamvault.vercel.app")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
@@ -292,7 +292,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	var conf = &oauth2.Config{
 		ClientID:    GOOGLE_CLIENT_ID ,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL:  "http://localhost:3000/auth/signIn",
+		RedirectURL: fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL","https://streamvault.vercel.app")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
