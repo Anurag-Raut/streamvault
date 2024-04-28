@@ -9,7 +9,7 @@ export default async function VODS({ params }: {
     }
 }) {
 
-    const contents = await get(`getContent?isVOD=true&username=${params.username}`, { }, new Headers(headers()))
+    const contents = await get(`getContent?isVOD=true&username=${params.username}`, { }, headers())
     console.log(contents, "content")
     return (
         <div>

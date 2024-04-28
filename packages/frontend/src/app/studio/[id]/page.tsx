@@ -23,9 +23,9 @@ export default async function Channel({ params }: { params: { id: string } }) {
         subscribersLast7Days: number,
         totalVideos: number
 
-    } = await get('getChannelSummary', {}, new Headers(headers()))
+    } = await get('getChannelSummary', {}, headers())
 
-    const content = await get('getDashboardContent', {}, new Headers(headers()))
+    const content = await get('getDashboardContent', {}, headers())
     console.log(content, "dataaaaa")
     return (
         <div className="w-full h-[90%] p-5   ">

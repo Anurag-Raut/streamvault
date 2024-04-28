@@ -8,7 +8,7 @@
     
     try {
       // const response = await axios.get('${process.env.NEXT_PUBLIC_BACKEND_URL}/signOut')
-      const response =await get('signOut',{},new Headers(headers()))
+      const response =await get('signOut',{},headers())
       console.log(response,"  response")
       // redirect("")
       //  return NextResponse.redirect(new URL("/",req.url))r

@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { get, post } from "~/api";
 
 export default async function Customize() {
-    const user:User=await post('getLoggedUserDetails',{},{},new Headers(headers()))
+    const user:User=await post('getLoggedUserDetails',{},{},headers())
     return (
         <div className="w-full h-[90%] p-5">
             <h1 className="text-xl my-3">
