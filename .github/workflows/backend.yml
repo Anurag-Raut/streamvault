@@ -12,4 +12,4 @@ jobs:
       - name: remove previous containers
         run: docker compose down
       - name: Build the stack
-        run: docker compose up -d
+        run: docker compose up -d --build
