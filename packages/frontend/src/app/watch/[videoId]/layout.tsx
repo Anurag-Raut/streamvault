@@ -35,7 +35,7 @@ type Video = {
 export default async function Watch({ params, children }: { params: { videoId: string }, children: React.ReactNode }) {
 
 
-    const data: Video = await post('getVideoData', JSON.stringify(params.videoId), {}, headers())
+    const data: Video = await post('getVideoData', JSON.stringify(params.videoId), {}, new Headers(headers()))
 
 
     console.log(data, "name")

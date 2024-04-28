@@ -33,7 +33,7 @@ const sections = [
 
 export default async function Sidebar({id}:{id:string}) {
     // const [selected, setSelected] = useState(0);
-    const user: User = await post('getLoggedUserDetails',{}, {}, headers())
+    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
 
 
     return (

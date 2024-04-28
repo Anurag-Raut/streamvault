@@ -24,7 +24,7 @@ const config = {
           }
         ],
       },
-      // async headers() {
+      // async new Headers(headers()) {
       //   return [
       //     {
       //       source: '/watch',
