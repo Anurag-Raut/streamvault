@@ -29,11 +29,11 @@ export default async function  Sidebar({ id }: { id: string }) {
             icon: "",
             path: "/studio"
         },
-        {
-            name: "LogOut",
-            icon: "",
-            path: "/auth/logout"
-        }
+        // {
+        //     name: "LogOut",
+        //     icon: "",
+        //     path: "/auth/logout"
+        // }
     ]
     
     
