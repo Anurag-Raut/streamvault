@@ -79,7 +79,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
 		Path:     "/",
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 		Secure:   true,
 	}
 	http.SetCookie(w, &cookie)
@@ -145,6 +145,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
+		Secure: true,
 	}
 	http.SetCookie(w, &cookie)
 	var response ="ok"
@@ -230,6 +231,7 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
+		Secure: true,
 	}
 	http.SetCookie(w, &cookie)
 	// w.Write([]byte("ok"))
@@ -350,6 +352,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
+		Secure: true,
 	}
 	http.SetCookie(w, &cookie)
 	var response string
