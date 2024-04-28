@@ -3,10 +3,10 @@ import TextInput from "../_components/textInput";
 import CustomizeComponent from "./customizeComponent";
 import { User } from "~/app/_components/header";
 import { headers } from "next/headers";
-import { get } from "~/api";
+import { get, post } from "~/api";
 
 export default async function Customize() {
-    const user:User=await get('getLoggedUserDetails',{},new Headers(headers()))
+    const user:User=await post('getLoggedUserDetails',{},{},new Headers(headers()))
     return (
         <div className="w-full h-[90%] p-5">
             <h1 className="text-xl my-3">

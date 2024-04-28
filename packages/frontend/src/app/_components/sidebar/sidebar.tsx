@@ -1,7 +1,7 @@
 
 import Sections, { SectionsType } from "./sidebarSections";
 import { User } from "../header";
-import { get } from "~/api";
+import { get, post } from "~/api";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -9,7 +9,7 @@ import Link from "next/link";
 export default async function  Sidebar({ id }: { id: string }) {
     // const [selected, setSelected] = useState(0);
     
-    const user: User = await get('getLoggedUserDetails', {},new Headers(headers()) )
+    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
     console.log(user, "userasdasd")
 
     const sections: SectionsType[] = [

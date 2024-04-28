@@ -1,7 +1,7 @@
 
 import { headers } from "next/headers";
 import { usePathname } from "next/navigation";
-import { get } from "~/api";
+import { get, post } from "~/api";
 import Avatar from "~/app/_components/avatar";
 import { User } from "~/app/_components/header";
 import Sections from "~/app/_components/sidebar/sidebarSections";
@@ -33,7 +33,7 @@ const sections = [
 
 export default async function Sidebar({id}:{id:string}) {
     // const [selected, setSelected] = useState(0);
-    const user: User = await get('getLoggedUserDetails', {}, new Headers(headers()))
+    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
 
 
     return (
