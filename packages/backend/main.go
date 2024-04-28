@@ -421,7 +421,7 @@ func getVideoDataMiddleware(next http.Handler) http.Handler {
 		}
 
 		if !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			utils.SendError(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
@@ -433,7 +433,7 @@ func getVideoDataMiddleware(next http.Handler) http.Handler {
 
 				if !userExists {
 
-					http.Error(w, "User does not exits ", http.StatusUnauthorized)
+					utils.SendError(w, "User does not exits ", http.StatusUnauthorized)
 					return
 				}
 
@@ -671,12 +671,16 @@ func main() {
 	}
 
 	rmq.ConnectRMQ()
+
 	defer rmq.CloseConnection()
 
 	go rmq.ConsumeMessages("vods")
 	postgres.Connect()
 	defer postgres.Disconnect()
 	go chat.HandleMessages()
+
+	// go simulation.StartSimulation()
+	// defer simulation.StopSimulation()
 
 	setupRoutes(mux)
 	fmt.Println("Hello, World!")

@@ -23,7 +23,7 @@ func ConnectRMQ() {
 		fmt.Println(err)
 		panic(err)
 	}
-	pool, err = pgxpool.Connect(context.Background(), "host=localhost user=postgres password=postgres dbname=streamvault sslmode=disable")
+	pool, err = pgxpool.Connect(context.Background(), "host=database user=postgres password=postgres dbname=streamvault sslmode=disable")
 
 	if err != nil {
 		fmt.Println("Error connecting to database")
