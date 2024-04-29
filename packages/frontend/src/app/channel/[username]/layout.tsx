@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { get, post } from "~/api";
 import Avatar from "~/app/_components/avatar";
 import Tabs from "../_components/tabs";
@@ -17,8 +17,14 @@ export default async function Layout({ params, children }: { params: { username:
         profileImage: string
         userId: string
         subscribers: number
-    } = await post('getUserDetailsByUsername', JSON.stringify(username), {}, new Headers(headers()))
-    const loggedUserDetails: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
+    } = await post('getUserDetailsByUsername', JSON.stringify(username), {
+        Cookie:cookies().toString(),
+
+    })
+    const loggedUserDetails: User = await post('getLoggedUserDetails',{}, {
+        Cookie:cookies().toString(),
+
+    })
     const isCurrentUser = loggedUserDetails.isLoggedIn && loggedUserDetails.username === data.username
     return (
         <div className=" h-full  w-full p-6">

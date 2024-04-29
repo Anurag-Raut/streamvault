@@ -1,7 +1,7 @@
 
 import { post } from "~/api"
 import LikeComponent from "../_components/likeComponent"
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { LikeState } from "../types"
 import ChannelInfo from "../_components/channelInfo"
 import Chat from "~/app/_components/chat"
@@ -35,7 +35,10 @@ type Video = {
 export default async function Watch({ params, children }: { params: { videoId: string }, children: React.ReactNode }) {
 
 
-    const data: Video = await post('getVideoData', JSON.stringify(params.videoId), {}, new Headers(headers()))
+    const data: Video = await post('getVideoData', JSON.stringify(params.videoId), {
+        Cookie:cookies().toString(),
+
+    })
 
 
     console.log(data, "name")

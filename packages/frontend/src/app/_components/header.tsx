@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { get, post } from '~/api';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
@@ -15,25 +15,11 @@ export type User = {
     userId: string,
     isLoggedIn: boolean
 }
-export default  function Header() {
-const [user,setUser]=useState<User>({
-    username: "",
-    profileImage: "",
-    userId: "",
-    isLoggedIn: false
-})
-
-    useEffect(()=>{
-        async function fetchData() {
-
-            const user: User = await post('getLoggedUserDetails',{}, {})
-            console.log(user, "userasdasd")
-            setUser(user);
-        }
-        fetchData()
-
-    },[])
- 
+export default async function Header() {
+    const user: User = await post('getLoggedUserDetails',{}, {
+        Cookie:cookies().toString(),
+    })
+    console.log(user, "userasdasd")
 
 
     return (

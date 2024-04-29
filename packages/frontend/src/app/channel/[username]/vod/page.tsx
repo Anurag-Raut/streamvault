@@ -1,4 +1,4 @@
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { get } from "~/api"
 import { Content } from "~/app/studio/[id]/content/page"
 
@@ -9,7 +9,10 @@ export default async function VODS({ params }: {
     }
 }) {
 
-    const contents = await get(`getContent?isVOD=true&username=${params.username}`, { }, new Headers(headers()))
+    const contents = await get(`getContent?isVOD=true&username=${params.username}`, { 
+        Cookie:cookies().toString(),
+
+    })
     console.log(contents, "content")
     return (
         <div>

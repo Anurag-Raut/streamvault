@@ -1,5 +1,5 @@
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { usePathname } from "next/navigation";
 import { get, post } from "~/api";
 import Avatar from "~/app/_components/avatar";
@@ -33,7 +33,10 @@ const sections = [
 
 export default async function Sidebar({id}:{id:string}) {
     // const [selected, setSelected] = useState(0);
-    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
+    const user: User = await post('getLoggedUserDetails',{}, {
+        Cookie:cookies().toString(),
+
+    })
 
 
     return (
