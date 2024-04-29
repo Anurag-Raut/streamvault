@@ -76,7 +76,18 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+	nextCookie := http.Cookie{
+		Name:     "nextjwt",
+		Value:    tokenString,
+		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
+		HttpOnly: true,
+		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Domain:   "streamvault.vercel.app",
+	}
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &nextCookie)
 	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(resp)
@@ -138,7 +149,18 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+	nextCookie := http.Cookie{
+		Name:     "nextjwt",
+		Value:    tokenString,
+		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
+		HttpOnly: true,
+		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Domain:   "streamvault.vercel.app",
+	}
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &nextCookie)
 	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(resp)
@@ -225,7 +247,18 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+	nextCookie := http.Cookie{
+		Name:     "nextjwt",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Domain:   "streamvault.vercel.app",
+	}
+
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &nextCookie)
 	// w.Write([]byte("ok"))
 	// w.WriteHeader(http.StatusOK)
 	// w.Write([]byte("ok"))
@@ -346,7 +379,17 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+	nextCookie := http.Cookie{
+		Name:     "nextjwt",
+		Value:    tokenString,
+		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Domain:   "streamvault.vercel.app",
+	}
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &nextCookie)
 	var response string
 	response = fmt.Sprintf("User %s created", userInfo.Name)
 	resp, err := json.MarshalIndent(response, "", "  ")
