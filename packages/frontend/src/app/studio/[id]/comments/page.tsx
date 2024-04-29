@@ -1,4 +1,4 @@
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import Image from "next/image"
 import { post } from "~/api"
 import Avatar from "~/app/_components/avatar"
@@ -26,7 +26,10 @@ export default async function Comments({
         id: string
     }
 }) {
-    const data = await post('/getCommmentsForChannel', JSON.stringify(params.id), {}, new Headers(headers()))
+    const data = await post('/getCommmentsForChannel', JSON.stringify(params.id), {
+        Cookie:cookies().toString(),
+
+    })
     // console.log(data, "dddaaaa")
     return (
         <div className="w-full h-full p-5">

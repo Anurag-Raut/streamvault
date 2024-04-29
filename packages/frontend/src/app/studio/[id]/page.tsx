@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { get } from "~/api";
 import Card from "~/app/_components/card";
 import { Content } from "./content/page";
@@ -23,9 +23,15 @@ export default async function Channel({ params }: { params: { id: string } }) {
         subscribersLast7Days: number,
         totalVideos: number
 
-    } = await get('getChannelSummary', {}, new Headers(headers()))
+    } = await get('getChannelSummary', {
+        Cookie:cookies().toString(),
 
-    const content = await get('getDashboardContent', {}, new Headers(headers()))
+    })
+
+    const content = await get('getDashboardContent', {
+        Cookie:cookies().toString(),
+
+    })
     console.log(content, "dataaaaa")
     return (
         <div className="w-full h-[90%] p-5   ">

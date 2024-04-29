@@ -2,14 +2,17 @@
 import Sections, { SectionsType } from "./sidebarSections";
 import { User } from "../header";
 import { get, post } from "~/api";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 
 
 export default async function  Sidebar({ id }: { id: string }) {
     // const [selected, setSelected] = useState(0);
     
-    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
+    const user: User = await post('getLoggedUserDetails',{}, {
+        Cookie:cookies().toString(),
+
+    })
     console.log(user, "userasdasd")
 
     const sections: SectionsType[] = [
@@ -29,11 +32,11 @@ export default async function  Sidebar({ id }: { id: string }) {
             icon: "",
             path: "/studio"
         },
-        // {
-        //     name: "LogOut",
-        //     icon: "",
-        //     path: "/auth/logout"
-        // }
+        {
+            name: "LogOut",
+            icon: "",
+            path: "/auth/logout"
+        }
     ]
     
     
