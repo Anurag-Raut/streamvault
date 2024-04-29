@@ -76,7 +76,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
-	
+
 	http.SetCookie(w, &cookie)
 	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
@@ -139,7 +139,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
-	
+
 	http.SetCookie(w, &cookie)
 	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
@@ -228,7 +228,6 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	}
 
-
 	http.SetCookie(w, &cookie)
 	// w.Write([]byte("ok"))
 	// w.WriteHeader(http.StatusOK)
@@ -274,14 +273,17 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
+func SigninWithGoogle(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("signing in with google")
 	GOOGLE_CLIENT_ID, err := env.MustGet("GOOGLE_CLIENT_ID")
 	if err != nil {
+		fmt.Println("error getting google client id")
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	GOOGLE_CLIENT_SECRET, err := env.MustGet("GOOGLE_CLIENT_SECRET")
 	if err != nil {
+		fmt.Println("error getting google client secret")
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -298,10 +300,11 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	var code string
 	err = json.NewDecoder(r.Body).Decode(&code)
 	if err != nil {
+		fmt.Println("error decoding json", err.Error())
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	fmt.Println("code")
 	ctx := context.Background()
 	tok, err := conf.Exchange(ctx, code)
 	if err != nil {

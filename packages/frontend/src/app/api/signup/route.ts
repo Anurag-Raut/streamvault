@@ -57,13 +57,18 @@ export async function POST(req: Request){
         
         return NextResponse.json({ message: 'Logged out successfully' });
     } else {
-        return NextResponse.json({ message: 'failed auth' })
+        
+        return NextResponse.json({ error: 'failed auth' },{
+          status: 401
+        })
     }
     // redirect("")
     //  return NextResponse.redirect(new URL("/",req.url))r
     return NextResponse.json({ message: 'Logged In successfully' })
   } catch (err:any) {
     console.error(err.toString())
-    return NextResponse.json({ message: 'Internal server error' })
+    return NextResponse.json({ error: 'Internal server error' },{
+      status: 500
+    })
   }
 }

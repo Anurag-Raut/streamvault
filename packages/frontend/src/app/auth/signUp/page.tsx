@@ -42,7 +42,7 @@ export default function SignUpPage() {
 
     
     }
-    async function loginWithGoogle() {
+    async function signinWithGoogle() {
         const url: string = await get('getGoogleUrl')
         console.log(url)
         router.replace(url)
@@ -81,7 +81,7 @@ export default function SignUpPage() {
                     }}
 
 
-                    className="w-full h-12 bg-white rounded-xl justify-center items-center flex hover:opacity-60" onClick={loginWithGoogle} >
+                    className="w-full h-12 bg-white rounded-xl justify-center items-center flex hover:opacity-60" onClick={signinWithGoogle} >
                     <FcGoogle size={23} />
                     <span className="ml-3 text-background font-bold text-lg">Sign in with Google</span>
                 </motion.button>

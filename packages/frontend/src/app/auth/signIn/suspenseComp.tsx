@@ -14,14 +14,14 @@ export default function SusSignInPage() {
     const router = useRouter()
     useEffect(() => {
         const code = searchParams.get('code')
-        async function loginWithGoogle() {
-            await post("loginWithGoogle", JSON.stringify(code))
+        async function signinWithGoogle() {
+            await post("signinWithGoogle", JSON.stringify(code))
             router.replace("/")
             router.refresh()
 
         }
         if (code) {
-            loginWithGoogle()
+            signinWithGoogle()
         }
     }, [])
     async function handleSignIn() {
@@ -53,7 +53,7 @@ export default function SusSignInPage() {
 
     }
 
-    async function loginWithGoogle() {
+    async function signinWithGoogle() {
         const url: string = await get('getGoogleUrl')
         console.log(url)
         router.replace(url)
@@ -92,7 +92,7 @@ export default function SusSignInPage() {
                     }}
 
 
-                    className="w-full h-12 bg-white rounded-xl justify-center items-center flex hover:opacity-60" onClick={loginWithGoogle} >
+                    className="w-full h-12 bg-white rounded-xl justify-center items-center flex hover:opacity-60" onClick={signinWithGoogle} >
                     <FcGoogle size={23} />
                     <span className="ml-3 text-background font-bold text-lg">Sign in with Google</span>
                 </motion.button>

@@ -1,29 +1,25 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
+import { get } from '~/api';
 import { cookies, headers } from 'next/headers';
-import cookie from 'cookie'
+import cookie from 'cookie';
 
 export async function POST(req: Request){
   
   try {
-    const {username,password}:{
-      username:string,
-      password:string
-    }=await req.json()
+    const code:string = await req.json()
+    console.log(code,"  code")
     // const response = await axios.get('${process.env.NEXT_PUBLIC_BACKEND_URL}/signOut')
-    const response =await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/signin`,{
+    const response =await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/signinWithGoogle`,{
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-       
+            ...headers
 
         },
+        body: JSON.stringify(code),
         credentials: 'include',
-        cache: "no-store",
-        body: JSON.stringify({
-          username:username,
-          password:password
-        }),
-
+        cache: "no-store"
       
     })
 
@@ -58,16 +54,18 @@ export async function POST(req: Request){
         
         return NextResponse.json({ message: 'Logged out successfully' });
     } else {
-        
+        console.log(response,"  response")
         return NextResponse.json({ error: 'failed auth' },{
           status: 401
         })
     }
     // redirect("")
     //  return NextResponse.redirect(new URL("/",req.url))r
-    return NextResponse.json({ message: 'Logged In successfully' })
+    return NextResponse.json({ message: 'Logged out successfully' })
   } catch (err:any) {
     console.error(err.toString())
-    return NextResponse.json({ message: 'Internal server error' })
+    return NextResponse.json({ error: 'Internal server error' },{
+      status: 500
+    })
   }
 }

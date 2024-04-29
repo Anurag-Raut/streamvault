@@ -655,7 +655,7 @@ func setupRoutes(mux *http.ServeMux) {
 	mux.Handle("/uploadProfileImage", authMiddleWare(http.HandlerFunc(UploadProfileImage)))
 	mux.Handle("/saveVod", authMiddleWare(http.HandlerFunc(postgres.SaveVod)))
 	mux.HandleFunc("/getGoogleUrl", auth.GetGoogleUrl)
-	mux.HandleFunc("/loginWithGoogle", auth.LoginWithGoogle)
+	mux.HandleFunc("/signinWithGoogle", auth.SigninWithGoogle)
 	mux.HandleFunc("/login", login)
 	mux.HandleFunc("/signup", auth.SignUp)
 	mux.HandleFunc("/signin", auth.SignIn)
