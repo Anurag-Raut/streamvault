@@ -28,7 +28,18 @@ export default function SusSignInPage() {
         try {
        
 
-            const response = await post('signin', JSON.stringify({ username, password }))
+            const response = await fetch(`/api/signin`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: 'include',
+                cache: "no-store",
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+            })
             toast.success("Signed in Successfully")
             router.replace("/")
             router.refresh()

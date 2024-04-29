@@ -17,7 +17,18 @@ export default function SignUpPage() {
         try {
           
 
-            const response = await post('signup', JSON.stringify({ username, password }))
+            const response = await fetch(`/api/signup`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: 'include',
+                cache: "no-store",
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+            })
             console.log(response, "ressssss")
             toast.success("Signed up Successfully")
             router.replace("/")
