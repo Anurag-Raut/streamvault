@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
 import HeaderDropDown from "./headerDropDown";
+import { useEffect, useState } from "react";
 
 export type User = {
     username: string,
