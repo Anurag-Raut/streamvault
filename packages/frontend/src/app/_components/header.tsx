@@ -17,8 +17,9 @@ export type User = {
 }
 export default async function Header() {
     const user: User = await post('getLoggedUserDetails',{}, {
-        
-    },new Headers(headers()))
+        Cookie:cookies().toString(),
+    })
+    console.log(cookies().toString(), "cookies")
 
 
     return (
