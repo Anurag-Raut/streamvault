@@ -19,7 +19,6 @@ export default async function Header() {
     const user: User = await post('getLoggedUserDetails',{}, {
         
     },new Headers(headers()))
-    console.log(new Headers(headers()), "headers")
 
 
     return (
