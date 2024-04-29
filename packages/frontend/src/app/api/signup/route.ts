@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies, headers } from 'next/headers';
-
+import cookie from "cookie"
 
 export async function POST(req: Request){
   
@@ -28,18 +28,30 @@ export async function POST(req: Request){
 
     console.log(response,"  response")
     if (response.ok) {
+      console.log(response.headers,"headerssss  ")
         const backendCookies = response.headers.get('set-cookie');
         if (backendCookies) {
             // You can now work with the cookies
             console.log('Cookies:', backendCookies);
-            backendCookies.split(';').forEach((cookie) => {
-                const [name, value] = cookie?.split('=');
-                console.log('name:', name, 'value:', value);
-                if(name && value)
-                    cookies().set(name, value);
+            
 
+            const backendCookie = cookie.parse(backendCookies);
+            console.log(backendCookie,backendCookie.expires,"expires")
+            for (const [name, value] of Object.entries(backendCookie)) {
+              console.log('name:', name, 'value:', value);
+              if(name && value && name==="jwt"){
+                cookies().set(name, value,{
+                  path: "/",
+                  expires: new Date(backendCookie?.expires??new Date().getTime() + 1000*60*60*24*7),
+                  sameSite: "none",
+                  secure: true,
+                  httpOnly: true
+                });
+              }
             }
-            )
+          
+
+            
             
         }
         
