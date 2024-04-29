@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { get, post } from '~/api';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
@@ -15,7 +15,9 @@ export type User = {
     isLoggedIn: boolean
 }
 export default async function Header() {
-    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
+    const user: User = await post('getLoggedUserDetails',{}, {
+        Cookie:cookies().toString(),
+    })
     console.log(user, "userasdasd")
 
 

@@ -1,6 +1,6 @@
 
 import Card from "~/app/_components/card";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { get } from "~/api";
 
 export type Content={
@@ -20,7 +20,10 @@ export default async function Content({ params }: { params: { id: string } }) {
 
     
 
-    const data= await get('getDashboardContent',{},new Headers(headers()))
+    const data= await get('getDashboardContent',{
+        Cookie:cookies().toString(),
+
+    })
     console.log(data,"dashboard content")
     return (
         <div className="w-full h-[90%] p-5">
