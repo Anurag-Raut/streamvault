@@ -1,4 +1,4 @@
-"use server"
+"use client"
 
 import { redirect } from "next/navigation"
 import { get, post } from '~/api';
@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
 import HeaderDropDown from "./headerDropDown";
+import { useEffect, useState } from "react";
 
 export type User = {
     username: string,
@@ -14,9 +15,25 @@ export type User = {
     userId: string,
     isLoggedIn: boolean
 }
-export default async function Header() {
-    const user: User = await post('getLoggedUserDetails',{}, {}, new Headers(headers()))
-    console.log(user, "userasdasd")
+export default  function Header() {
+const [user,setUser]=useState<User>({
+    username: "",
+    profileImage: "",
+    userId: "",
+    isLoggedIn: false
+})
+
+    useEffect(()=>{
+        async function fetchData() {
+
+            const user: User = await post('getLoggedUserDetails',{}, {})
+            console.log(user, "userasdasd")
+            setUser(user);
+        }
+        fetchData()
+
+    },[])
+ 
 
 
     return (
