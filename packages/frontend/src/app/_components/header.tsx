@@ -7,7 +7,6 @@ import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
 import HeaderDropDown from "./headerDropDown";
-import { useEffect, useState } from "react";
 
 export type User = {
     username: string,
@@ -19,7 +18,7 @@ export default async function Header() {
     const user: User = await post('getLoggedUserDetails',{}, {
         Cookie:cookies().toString(),
     })
-    console.log(user, "userasdasd")
+    console.log(cookies().toString(), "cookies")
 
 
     return (
