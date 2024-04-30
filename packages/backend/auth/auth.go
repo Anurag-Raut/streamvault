@@ -75,6 +75,8 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
+		Domain: ".streamvault.site",
+
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -135,6 +137,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
+		Domain: ".streamvault.site",
+
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -220,6 +224,7 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
+		Domain: ".streamvault.site",
 	}
 	http.SetCookie(w, &cookie)
 	// w.Write([]byte("ok"))
@@ -339,6 +344,8 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
+		Domain: ".streamvault.site",
+
 	}
 	http.SetCookie(w, &cookie)
 	var response string

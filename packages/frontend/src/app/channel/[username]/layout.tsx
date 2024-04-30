@@ -11,15 +11,18 @@ import Link from "next/link";
 export default async function Layout({ params, children }: { params: { username: string }, children: ReactNode }) {
     console.log(params, "params")
     const username = decodeURIComponent(params.username)
-
+    console.log(username, "usernameeee")
     const data: {
         username: string,
         profileImage: string
         userId: string
         subscribers: number
-    } = await post('getUserDetailsByUsername', JSON.stringify(username), {}, new Headers(headers()))
+    } = await post('getUserDetailsByUsername', JSON.stringify(username))
+    console.log(data, "data")
     const loggedUserDetails: User = await get('getLoggedUserDetails', {}, new Headers(headers()))
+    console.log(loggedUserDetails, "loggedUserDetails")
     const isCurrentUser = loggedUserDetails.isLoggedIn && loggedUserDetails.username === data.username
+    
     return (
         <div className=" h-full  w-full p-6">
             <div className="flex">
