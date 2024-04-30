@@ -20,12 +20,9 @@ import (
 	"google.golang.org/api/option"
 )
 
-
-
 // func SignUpWithEmail(email string) {
 // Sender data.'
 var secret = []byte("eat shit")
-
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -37,38 +34,35 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&signInReq); err != nil {
-		fmt.Println("error hello",err.Error())
+		fmt.Println("error hello", err.Error())
 		utils.SendError(w, fmt.Sprintf("error decoding json %v", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(signInReq.Username,signInReq.Password)
-	isPasscordCorrect,id,err:=postgres.CheckUsernamePassword(signInReq.Username,signInReq.Password)
+	fmt.Println(signInReq.Username, signInReq.Password)
+	isPasscordCorrect, id, err := postgres.CheckUsernamePassword(signInReq.Username, signInReq.Password)
 	if err != nil {
-		fmt.Println("error hello",err.Error())
+		fmt.Println("error hello", err.Error())
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if  !isPasscordCorrect {
-		fmt.Println("error hello",err.Error())
+	if !isPasscordCorrect {
+		fmt.Println("error hello", err.Error())
 		utils.SendError(w, fmt.Sprintf("password not matching %v", err), http.StatusUnauthorized)
 		return
 	}
-
-
-
 
 	fmt.Println(signInReq.Username)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": signInReq.Username,
-		"userId":id,
+		"userId":   id,
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secret)
 
 	if err != nil {
-		fmt.Println("errurr" ,err.Error())
+		fmt.Println("errurr", err.Error())
 		utils.SendError(w, fmt.Sprintf("Error Signing token: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -86,7 +80,6 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(resp)
-
 
 }
 
@@ -110,15 +103,13 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(signUpReq.Username)
-	
-	id,err := postgres.CreateUserWithPassword(signUpReq.Username, signUpReq.Password)
+
+	id, err := postgres.CreateUserWithPassword(signUpReq.Username, signUpReq.Password)
 
 	if err != nil {
-		utils.SendError(w,err.Error(),http.StatusInternalServerError)
+		utils.SendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": signUpReq.Username,
@@ -129,7 +120,6 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		utils.SendError(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
 		return
 	}
-
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secret)
@@ -147,7 +137,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
-	var response ="ok"
+	var response = "ok"
 	resp, _ := json.MarshalIndent(response, "", "  ")
 	w.Write(resp)
 }
@@ -256,7 +246,7 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 	var conf = &oauth2.Config{
 		ClientID:     GOOGLE_CLIENT_ID,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL: fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL","https://streamvault.vercel.app")),
+		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://streamvault.site")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
@@ -288,11 +278,10 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var conf = &oauth2.Config{
-		ClientID:    GOOGLE_CLIENT_ID ,
+		ClientID:     GOOGLE_CLIENT_ID,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL: fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL","https://streamvault.vercel.app")),
+		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://streamvault.site")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
