@@ -43,6 +43,17 @@ services:
     volumes:
     - /home/anurag/s3mnt:/home/anurag/s3mnt
 
+  nginx-server:
+    build: ./packages/nginx-server
+    ports:
+      - "8081:80"
+      # - "8081:443"
+    depends_on:
+      - app
+    networks:
+      - network-app
+
+
 
  
 
