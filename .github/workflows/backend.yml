@@ -15,6 +15,6 @@ jobs:
         run: cp docker-compose-prod.yml docker-compose.yml
     
       - name: remove previous containers
-        run: sudo docker compose down
+        run: docker compose down
       - name: Build the stack
-        run: sudo docker compose up -d --build
+        run: docker compose up -d --build
