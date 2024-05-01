@@ -12,7 +12,7 @@ jobs:
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
 
       - name: Add nginx ket and certificate
-        run: touch ./packages/nginx-server/nginx-selfsigned.key && echo "${{ secrets.NGINX_KEY }}" >> ./packages/nginx-server/nginx-selfsigned.key && touch ./packages/nginx-server/nginx-selfsigned.crt && echo echo "${{ secrets.NGINX_CERT }}" >> ./packages/nginx-server/nginx-selfsigned.crt
+        run: touch ./packages/nginx-server/nginx-selfsigned.key && echo "${{ secrets.NGINX_KEY }}" >> ./packages/nginx-server/nginx-selfsigned.key && touch ./packages/nginx-server/nginx-selfsigned.crt && echo "${{ secrets.NGINX_CERT }}" >> ./packages/nginx-server/nginx-selfsigned.crt
 
       - name: Replace docker compose
         run: cp docker-compose-prod.yml docker-compose.yml
