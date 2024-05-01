@@ -6,8 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: switch user
-        run: su - anurag
+   
     
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
@@ -16,6 +15,6 @@ jobs:
         run: cp docker-compose-prod.yml docker-compose.yml
     
       - name: remove previous containers
-        run: docker compose down
+        run: sudo docker compose down
       - name: Build the stack
-        run: docker compose up -d --build
+        run: sudo docker compose up -d --build
