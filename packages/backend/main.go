@@ -628,7 +628,7 @@ func uploadVideo(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupRoutes(mux *http.ServeMux) {
-	// mux.Handle("/", (http.HandlerFunc(homePage)))
+	mux.Handle("/", (http.HandlerFunc(homePage)))
 	mux.HandleFunc("/ws", wsEndpoint)
 	// mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
 	mux.Handle("/startStream", authMiddleWare(http.HandlerFunc(startStream)))
