@@ -44,6 +44,8 @@ services:
     - /home/anurag/s3mnt:/home/anurag/s3mnt
   webserver:
     image: nginx:latest
+    networks:
+      - network-app
     ports:
       - 80:80
       - 443:443
@@ -53,6 +55,8 @@ services:
       - ./certbot/www/:/var/www/certbot/:ro
   certbot:
     image: certbot/certbot:latest
+    networks:
+      - network-app
     volumes:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
