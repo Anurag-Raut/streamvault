@@ -42,21 +42,21 @@ services:
       - network-app
     volumes:
     - /home/anurag/s3mnt:/home/anurag/s3mnt
-  webserver:
-    image: nginx:latest
-    ports:
-      - 80:80
-      - 443:443
-    restart: always
-    volumes:
-      - /home/anurag/nginx/conf/:/etc/nginx/conf.d/:rw
-      - /home/anurag/certbot/www:/var/www/certbot/:rw
-      - /home/anurag/certbot/conf/:/etc/nginx/ssl/:rw
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - ./certbot/www/:/var/www/certbot/:rw
-      - ./certbot/conf/:/etc/letsencrypt/:rw
+  # webserver:
+  #   image: nginx:latest
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   restart: always
+  #   volumes:
+  #     - /home/anurag/nginx/conf/:/etc/nginx/conf.d/:rw
+  #     - /home/anurag/certbot/www:/var/www/certbot/:rw
+  #     - /home/anurag/certbot/conf/:/etc/nginx/ssl/:rw
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   volumes:
+  #     - ./certbot/www/:/var/www/certbot/:rw
+  #     - ./certbot/conf/:/etc/letsencrypt/:rw
 
  
 
