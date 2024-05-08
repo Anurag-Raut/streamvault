@@ -4,10 +4,6 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-      - name: Create empty file in certbot folder
-        run: |
-          mkdir -p ./certbot/www
-          touch ./certbot/www/placeholder.txt
       - uses: actions/checkout@v3
 
    
