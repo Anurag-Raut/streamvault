@@ -10,7 +10,7 @@ services:
       networks:
         - network-app
       volumes:
-      - /home/anurag/s3mnt:/home/anurag/s3mnt
+        - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
       
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -41,7 +41,8 @@ services:
     networks:
       - network-app
     volumes:
-    - /home/anurag/s3mnt/:/home/anurag/s3mnt/
+      - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
+
   # webserver:
   #   image: nginx:latest
   #   ports:
