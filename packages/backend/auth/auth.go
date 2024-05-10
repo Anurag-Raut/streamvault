@@ -23,6 +23,7 @@ import (
 // func SignUpWithEmail(email string) {
 // Sender data.'
 var secret = []byte("eat shit")
+var domain = env.Get("DOMAIN", "localhost")
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -75,8 +76,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
-		Domain: ".streamvault.site",
-
+		Domain:   domain,
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -137,8 +137,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
-		Domain: ".streamvault.site",
-
+		Domain:   domain,
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -203,7 +202,7 @@ func GetUserDetails(w http.ResponseWriter, r *http.Request) {
 	var userDetails postgres.UserDetails
 	userDetails, err = postgres.GetUserDetailsFromDatabase(userId)
 	if err != nil {
-		fmt.Println("error getting user details")
+		fmt.Println("error getting user details", err.Error())
 		response.IsLoggedIn = false
 		resp, _ := json.MarshalIndent(response, "", "  ")
 		w.Write(resp)
@@ -224,7 +223,7 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
-		Domain: ".streamvault.site",
+		Domain:   domain,
 	}
 	http.SetCookie(w, &cookie)
 	// w.Write([]byte("ok"))
@@ -317,18 +316,23 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	userinfoService := oauth2pkg.NewUserinfoService(oauth2Service)
 
 	userInfo, err := userinfoService.Get().Do(googleapi.QueryParameter("access_token", tok.AccessToken))
+	fmt.Println("UserInfo", userInfo.Name, userInfo.Picture)
+	if err != nil {
+		fmt.Println("ERERER", err.Error())
+		utils.SendError(w, fmt.Sprintf("google api user info error %v", err), http.StatusInternalServerError)
+	}
 
 	id, err := postgres.CreateUser(userInfo.Name, &userInfo.Picture)
-
+	fmt.Println(id, "id")
+	if err != nil {
+		fmt.Println("ERORR CREATING USER", err)
+		utils.SendError(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
+		return
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": userInfo.Name,
 		"userId":   id,
 	})
-
-	if err != nil {
-		utils.SendError(w, fmt.Sprintf("error creating user %v", err), http.StatusInternalServerError)
-		return
-	}
 
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString(secret)
@@ -344,12 +348,10 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
-		Domain: ".streamvault.site",
-
+		Domain:   domain,
 	}
 	http.SetCookie(w, &cookie)
-	var response string
-	response = fmt.Sprintf("User %s created", userInfo.Name)
+	var response = fmt.Sprintf("User %s created", userInfo.Name)
 	resp, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
