@@ -8,7 +8,7 @@ services:
         - rabbitmq
         - database
       networks:
-        - network-app
+        - streamvault-net
       volumes:
         - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
       
@@ -18,14 +18,14 @@ services:
       - "5672:5672"
       - "15672:15672"
     networks:
-      - network-app
+      - streamvault-net
     
   database:
     image: postgres:latest
     ports:
       - "5432:5432"
     networks:
-      - network-app
+      - streamvault-net
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=streamvault
@@ -39,7 +39,7 @@ services:
     depends_on:
       - rabbitmq
     networks:
-      - network-app
+      - streamvault-net
     volumes:
       - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
 
