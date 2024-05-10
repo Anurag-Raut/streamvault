@@ -41,7 +41,7 @@ services:
     networks:
       - network-app
     volumes:
-    - /home/anurag/s3mnt:/home/anurag/s3mnt
+    - /home/anurag/s3mnt/:/home/anurag/s3mnt/
   # webserver:
   #   image: nginx:latest
   #   ports:
