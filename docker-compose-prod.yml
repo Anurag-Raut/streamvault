@@ -62,9 +62,9 @@ services:
  
 
     
-
 networks:
-  network-app:
+  streamvault-net:
+    external: true
   
 
 
