@@ -702,7 +702,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == http.MethodOptions {
 			// Handle preflight OPTIONS request
-			w.Header().Set("Access-Control-Allow-Origin", env.Get("FRONTEND_URL", "https://streamvault.site"))
+			w.Header().Set("Access-Control-Allow-Origin", env.Get("FRONTEND_URL", "https://echon.live"))
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -711,7 +711,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Set CORS headers for non-preflight requests
-		w.Header().Set("Access-Control-Allow-Origin", env.Get("FRONTEND_URL", "https://streamvault.site"))
+		w.Header().Set("Access-Control-Allow-Origin", env.Get("FRONTEND_URL", "https://echon.live"))
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
