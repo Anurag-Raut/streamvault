@@ -24,11 +24,9 @@ import (
 // Sender data.'
 
 var secret = []byte("eat shit")
-var domain = env.Get("DOMAIN", "localhost")
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain, "domaaiinnnnn")
-	fmt.Println(env.Get("DOMAIN", "asaasddsffs"))
+
 	if r.Method != http.MethodPost {
 		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -79,7 +77,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
-		Domain:   domain,
+		Domain:   env.Get("DOMAIN", "localhost"),
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -89,7 +87,6 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain, "domaaiinnnnn")
 	if r.Method != http.MethodPost {
 		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -141,7 +138,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
-		Domain:   domain,
+		Domain:   env.Get("DOMAIN", "localhost"),
 	}
 	http.SetCookie(w, &cookie)
 	var response = "ok"
@@ -227,7 +224,7 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		HttpOnly: true,
-		Domain:   domain,
+		Domain:   env.Get("DOMAIN", "localhost"),
 	}
 	http.SetCookie(w, &cookie)
 	// w.Write([]byte("ok"))
@@ -241,7 +238,6 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain, "domaaiinnnnn")
 	GOOGLE_CLIENT_ID, err := env.MustGet("GOOGLE_CLIENT_ID")
 	if err != nil {
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
@@ -276,7 +272,6 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain, "domaaiinnnnn")
 	GOOGLE_CLIENT_ID, err := env.MustGet("GOOGLE_CLIENT_ID")
 	if err != nil {
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
@@ -354,7 +349,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 		Value:    tokenString,
 		Expires:  time.Now().Add(time.Hour * 24 * 10), // Set expiration time same as token
 		HttpOnly: true,
-		Domain:   domain,
+		Domain:   env.Get("DOMAIN", "localhost"),
 	}
 	http.SetCookie(w, &cookie)
 	var response = fmt.Sprintf("User %s created", userInfo.Name)
