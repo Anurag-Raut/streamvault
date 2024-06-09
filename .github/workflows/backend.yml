@@ -6,8 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-   
-    
+  
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
       # - name: show cert

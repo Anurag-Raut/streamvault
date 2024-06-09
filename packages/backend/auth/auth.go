@@ -250,7 +250,7 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 	var conf = &oauth2.Config{
 		ClientID:     GOOGLE_CLIENT_ID,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://streamvault.site")),
+		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://echon.live")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
@@ -285,7 +285,7 @@ func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
 	var conf = &oauth2.Config{
 		ClientID:     GOOGLE_CLIENT_ID,
 		ClientSecret: GOOGLE_CLIENT_SECRET,
-		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://streamvault.site")),
+		RedirectURL:  fmt.Sprintf("%s/auth/signIn", env.Get("FRONTEND_URL", "https://echon.live")),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 		},
