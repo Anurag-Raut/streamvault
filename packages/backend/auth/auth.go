@@ -26,9 +26,9 @@ import (
 var secret = []byte("eat shit")
 var domain = env.Get("DOMAIN", "localhost")
 
-
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain,"domaaiinnnnn")
+	fmt.Println(domain, "domaaiinnnnn")
+	fmt.Println(env.Get("DOMAIN", "asaasddsffs"))
 	if r.Method != http.MethodPost {
 		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -89,7 +89,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain,"domaaiinnnnn")
+	fmt.Println(domain, "domaaiinnnnn")
 	if r.Method != http.MethodPost {
 		utils.SendError(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -241,7 +241,7 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain,"domaaiinnnnn")
+	fmt.Println(domain, "domaaiinnnnn")
 	GOOGLE_CLIENT_ID, err := env.MustGet("GOOGLE_CLIENT_ID")
 	if err != nil {
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
@@ -276,7 +276,7 @@ func GetGoogleUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginWithGoogle(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(domain,"domaaiinnnnn")
+	fmt.Println(domain, "domaaiinnnnn")
 	GOOGLE_CLIENT_ID, err := env.MustGet("GOOGLE_CLIENT_ID")
 	if err != nil {
 		utils.SendError(w, err.Error(), http.StatusInternalServerError)
