@@ -59,7 +59,7 @@ func generateChat(username string, videoId string) (string, error) {
 		  you can  comment about video , ask related questions , address other chatter , or any other thing , dont do all in single chat only one thing make sure to keep it short like about 5 to 10 words.
 		  do not repeat messages , make new chats
 		  only return the text, no give username of the chatter
-		  output format : <chat>
+		  output format : chat
 		  `, username, videodata.Title, videodata.Description, videodata.Category, videodata.User.Username, chatString),
 		},
 	)
@@ -258,7 +258,7 @@ func StartChatBots() {
 
 			chatMessage, err := generateChat(randomUser.Username, videoId)
 			if err != nil {
-				time.Sleep(2 * time.Second)
+				time.Sleep(1000 * time.Second)
 				continue
 			}
 			msg.Message = chatMessage
@@ -267,7 +267,7 @@ func StartChatBots() {
 
 			chat.Broadcast <- msg
 
-			time.Sleep(5 * time.Second)
+			time.Sleep(1000 * time.Second)
 
 			// chat.Broadcast
 
