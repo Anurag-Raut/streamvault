@@ -4,10 +4,9 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "react-toastify";
 import * as api from "~/api";
 import ChatBubble from "./chatBubble";
-import { tailChase } from 'ldrs'
+
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-tailChase.register()
 
 
 
@@ -34,6 +33,13 @@ type ReceivedChatMessage = {
 };
 
 export default function Chat({ streamId }: { streamId: string }) {
+    import('ldrs').then(ldrs => {
+        const { tailChase } = ldrs;
+
+        // Register components
+        tailChase.register();
+     
+    });
     const [chats, setChats] = useState<ReceivedChatMessage[]>([]);
     const [text, setText] = useState<string>("");
     const [socket, setSocket] = useState<WebSocket | null>(null);
