@@ -21,6 +21,11 @@
         - "15672:15672"
       networks:
         - network-app
+      healthcheck:
+        test: rabbitmq-diagnostics -q ping
+        interval: 5s
+        timeout: 5s
+        retries: 5
       
     database:
       image: postgres:latest
@@ -38,12 +43,16 @@
       build: ./packages/subtitler
       ports:
         - "5000:5000"
-      depends_on:
-        - rabbitmq
+     
       networks:
         - network-app
       volumes:
         - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
+      depends_on:
+        rabbitmq:
+          condition: service_healthy
+      restart: always
+
     # webserver:
     #   image: nginx:latest
     #   ports:

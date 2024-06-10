@@ -3,14 +3,15 @@ import { UserDetails } from ".";
 import { motion } from "framer-motion";
 import Avatar from "../avatar";
 
-export default function ChatBubble({ message, user }: {
+export default function ChatBubble({ message, user,key }: {
     message: string,
     user: {
         username: string,
         userId: string,
         profileImage: string
 
-    }
+    },
+    key:number
 }) {
     const hRange: [number, number] = [0, 360];
     const sRange: [number, number] = [60, 70];
@@ -34,7 +35,7 @@ export default function ChatBubble({ message, user }: {
         return `hsl(${h},${s}%,${l}%)`;
     };
     return (
-        <motion.div initial={{
+        <motion.div key={key} initial={{
             // x: -10,
             y: 20,
             opacity: 0.2
@@ -59,7 +60,7 @@ export default function ChatBubble({ message, user }: {
             }} className="font-bold text-sm ml-2">
                 {user.username}:
             </div>
-            <div className="ml-2 bg-red-400  text-wrap text-ellipsis  flex-wrap w-fit max-w-full break-all   ">
+            <div className="ml-2   text-wrap text-ellipsis  flex-wrap w-fit max-w-full break-all   ">
                 {message}
             </div>
 

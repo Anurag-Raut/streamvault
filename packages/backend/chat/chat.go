@@ -14,13 +14,13 @@ import (
 // }
 
 var clients = map[string]map[*websocket.Conn]bool{}
-var broadcast = make(chan Message)
+var Broadcast = make(chan Message)
 
-type Message struct {
-	User   postgres.UserDetails `json:"user"`
-	Message  string  `json:"message"`
-	StreamId string  `json:"streamId"`
-}
+	type Message struct {
+		User   postgres.UserDetails `json:"user"`
+		Message  string  `json:"message"`
+		StreamId string  `json:"streamId"`
+	}
 
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -86,28 +86,29 @@ func Chat(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println(msg.Message, msg.User.UserId, msg.StreamId)
 
-		err=postgres.PostChat(msg.StreamId, msg.User.UserId, msg.Message)
-		if err != nil {
-			fmt.Println(err)
-			conn.WriteJSON(ErrorResponse{Error: "Error posting message"})
-			continue
-		}
+		
 		
 
 		
 
 
 
-		broadcast <- msg
+		Broadcast <- msg
 	}
 
 }
 
 func HandleMessages() {
 	for {
-		msg := <-broadcast
+		msg := <-Broadcast
+		fmt.Println("Received a message: ",msg.Message)
 		var streamId string = msg.StreamId
-
+		err:=postgres.PostChat(msg.StreamId, msg.User.UserId, msg.Message)
+		if err != nil {
+			fmt.Println(err)
+			
+			continue
+		}
 		for client := range clients[streamId] {
 			err := client.WriteJSON(msg)
 			if err != nil {

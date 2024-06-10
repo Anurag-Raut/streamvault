@@ -16,6 +16,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type VideoData struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Category    string `json:"category"`
+	Thumbnail   string `json:"thumbnail"`
+	IsStreaming bool   `json:"isStreaming"`
+	User        struct {
+		Username     string  `json:"username"`
+		ID           string  `json:"id"`
+		ProfileImage *string `json:"profileImage"`
+	} `json:"user"`
+}
+
+type Chat struct {
+	Message   string      `json:"message"`
+	CreatedAt time.Time   `json:"createdAt"`
+	User      UserDetails `json:"user"`
+}
+
 var pool *pgxpool.Pool
 
 func HashPassword(password string) (string, error) {
@@ -415,6 +435,27 @@ func GetVideoData(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
+func GetVideoDataFromDatabase(videoId string) (VideoData, error) {
+
+	ctx := context.Background()
+
+	var videoData VideoData
+
+	err := pool.QueryRow(ctx,
+		`SELECT v.id, v.title, v.description, v.category, v.thumbnail, v."isStreaming", u.username, u.id,u."profileImage"
+		 FROM "Video" v
+		 JOIN "User" u ON v."userId" = u."id"
+		 WHERE v.id = $1`,
+		videoId).Scan(&videoData.ID, &videoData.Title, &videoData.Description, &videoData.Category, &videoData.Thumbnail, &videoData.IsStreaming, &videoData.User.Username, &videoData.User.ID, &videoData.User.ProfileImage)
+	if err != nil {
+		fmt.Println(err)
+
+		return VideoData{}, err
+	}
+
+	return videoData, nil
+}
+
 func Like(w http.ResponseWriter, r *http.Request) {
 	var videoId string
 	err := json.NewDecoder(r.Body).Decode(&videoId)
@@ -777,7 +818,8 @@ func GetDashboardContent(w http.ResponseWriter, r *http.Request) {
 func GetChats(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	var request struct {
-		VideoId string `json:"videoId"`
+		VideoId   string `json:"videoId"`
+		NoOfChats *int   `json:"noOfChats"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -785,6 +827,13 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 		sendError(w, err.Error())
 		return
 	}
+	if request.NoOfChats == nil {
+		noOfChats := 0
+		request.NoOfChats = &noOfChats
+	}
+	pageSize := 10
+	offset := (*request.NoOfChats / pageSize) * pageSize
+	fmt.Println("Offset ", offset, " No of chats", *request.NoOfChats)
 
 	rows, err := pool.Query(ctx,
 		`SELECT c."userId",c.text,c."createdAt",u.username,u."profileImage"
@@ -792,7 +841,8 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 		JOIN "User" u ON c."userId" = u.id
 		 Where c."videoId" = $1
 		 ORDER BY c."createdAt" DESC
-		`, request.VideoId)
+		 LIMIT $2 OFFSET $3
+		`, request.VideoId, pageSize, offset)
 	if err != nil {
 		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -819,8 +869,54 @@ func GetChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, _ := json.MarshalIndent(chats, "", "  ")
+	type Response struct {
+		Chats  []Chat `json:"chats"`
+		Finish bool   `json:"finish"`
+	}
+
+	resp := Response{
+		Chats: chats,
+	}
+
+	if len(chats) < pageSize {
+		resp.Finish = true
+	}
+
+	result, _ := json.MarshalIndent(resp, "", "  ")
 	w.Write(result)
+}
+
+func GetChatsFromDatabase(videoId string, numberOfChats int) []Chat {
+	ctx := context.Background()
+
+	rows, err := pool.Query(ctx,
+		`SELECT c."userId",c.text,c."createdAt",u.username,u."profileImage"
+		FROM "Comment" c 
+		JOIN "User" u ON c."userId" = u.id
+		 Where c."videoId" = $1
+		 ORDER BY c."createdAt" DESC
+		 LIMIT $2
+		`, videoId, numberOfChats)
+	if err != nil {
+
+		return []Chat{}
+	}
+	defer rows.Close()
+
+	chats := make([]Chat, 0)
+	for rows.Next() {
+		var chat Chat
+		err = rows.Scan(&chat.User.UserId, &chat.Message, &chat.CreatedAt, &chat.User.Username, &chat.User.ProfileImage)
+		if err != nil {
+			return []Chat{}
+		}
+		chats = append(chats, chat)
+	}
+	if err = rows.Err(); err != nil {
+		return []Chat{}
+	}
+
+	return chats
 }
 
 func PostChat(videoId string, userId string, message string) error {

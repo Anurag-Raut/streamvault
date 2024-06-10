@@ -38,7 +38,7 @@ export default async function Watch({ params, children }: { params: { videoId: s
     const data: Video = await post('getVideoData', JSON.stringify(params.videoId), {}, new Headers(headers()))
 
 
-    console.log(data, "name")
+    // console.log(data, "name")
     return (
         <div className='w-full h-full p-9 flex justify-between'>
             <div className='   h-full ' >
@@ -54,7 +54,7 @@ export default async function Watch({ params, children }: { params: { videoId: s
 
                 </div>
             </div>
-            <div className=" w-[500px]">
+            <div className=" w-[500px] max-h-[82vh]">
                 <Chat streamId={params.videoId} />
 
             </div>

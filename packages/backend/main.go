@@ -683,6 +683,9 @@ func main() {
 	go simulation.StartSimulation()
 	defer simulation.StopSimulation()
 
+
+	// go simulation.StartChatBots()
+
 	setupRoutes(mux)
 	fmt.Println("Hello, World!")
 
