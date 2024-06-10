@@ -32,7 +32,7 @@ func generateChat(username string, videoId string) (string, error) {
 	chatString += "}"
 	
 	client := cohereclient.NewClient(cohereclient.WithToken(env.Get("COHERE_TOKEN", "")))
-	fmt.Println("reached")
+	fmt.Println("reached",env.Get("COHERE_TOKEN", ""))
 	response, err := client.Chat(
 		context.TODO(),
 		&cohere.ChatRequest{
@@ -65,7 +65,7 @@ func generateChat(username string, videoId string) (string, error) {
 	)
 
 	if err != nil {
-		fmt.Println("Error occued: ", err.Error())
+		fmt.Println("Error occued incoher token : ", err.Error())
 		return "", err
 	}
 	
