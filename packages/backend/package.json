@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "sudo docker start rabbitmq && go run main.go "
+    "serve": "go run main.go "
   },
   "keywords": [],
   "author": "",

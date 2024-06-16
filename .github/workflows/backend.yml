@@ -4,25 +4,16 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/checkout@v4
+      - name: Setup Go 1.22.1
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.2
+      - name: Display Go version
+        run: go version
   
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
-      # - name: show cert
-      #   run: echo "${{ secrets.ENV_ANURAG }}"
 
-      # - name: Add nginx ket and certificate
-      #   run: touch ./packages/nginx-server/nginx-selfsigned.key && echo "${{ secrets.NGINX_KEY }}" >> ./packages/nginx-server/nginx-selfsigned.key && touch ./packages/nginx-server/nginx-selfsigned.crt && echo "${{ secrets.NGINX_CERT }}" >> ./packages/nginx-server/nginx-selfsigned.crt
-
-      - name: Replace docker compose
-        run: cp docker-compose-prod.yml docker-compose.yml
-      - name: print user
-        run: echo $USER
-      - name: print Users
-        run: whoami
-      - name: remove previous containers
-        run: docker compose down
-      - name: Build the stack
-        run: docker compose up -d --build
-      
+      - name: start go backend
+    

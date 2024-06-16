@@ -8,6 +8,7 @@ import (
 
 	// "path/filepath"
 
+	"github.com/gofor-little/env"
 	"github.com/jackc/pgx/v4/pgxpool"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -16,14 +17,15 @@ var pool *pgxpool.Pool
 var connection *amqp.Connection
 
 func ConnectRMQ() {
-	fmt.Println("RabbitMQ in Golang: Getting started tutorial")
+
 	var err error
-	connection, err = amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	connection, err = amqp.Dial(env.Get("RMQ_URL","amqp://guest:guest@rabbitmq:5672/"))
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-	pool, err = pgxpool.Connect(context.Background(), "host=database user=postgres password=postgres dbname=streamvault sslmode=disable")
+	
+	pool, err = pgxpool.Connect(context.Background(), env.Get("DATABASE_URL","host=database user=postgres password=postgres dbname=streamvault sslmode=disable"))
 
 	if err != nil {
 		fmt.Println("Error connecting to database")

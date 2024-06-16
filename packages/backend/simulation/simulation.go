@@ -58,7 +58,7 @@ func generateChat(username string, videoId string) (string, error) {
 		  chat should be short (1-10) words, use words that chatters use on twitch and youtube and intersting and like real humans on internet .
 		  you can  comment about video , ask related questions , address other chatter , or any other thing , dont do all in single chat only one thing make sure to keep it short like about 5 to 10 words.
 		  do not repeat messages , make new chats
-		  only return the text, no give username of the chatter
+		  only return the text, dont give username of the chatter
 		  output format : chat
 		  `, username, videodata.Title, videodata.Description, videodata.Category, videodata.User.Username, chatString),
 		},

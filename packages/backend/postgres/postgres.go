@@ -10,6 +10,7 @@ import (
 	"streamvault/rmq"
 	"time"
 
+	"github.com/gofor-little/env"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -52,7 +53,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 func Connect() {
 	var err error
-	pool, err = pgxpool.Connect(context.Background(), "host=database user=postgres password=postgres dbname=streamvault sslmode=disable")
+	pool, err = pgxpool.Connect(context.Background(), env.Get("DATABASE_URL","host=database user=postgres password=postgres dbname=streamvault sslmode=disable"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
