@@ -76,7 +76,7 @@ func generateChat(username string, videoId string) (string, error) {
 
 var uuids []string
 var userIds []string
-var backendUrl = env.Get("BACKEND_URL", "http://localhost:8080")
+var backendUrl = env.Get("BACKEND_URL", "https://api.echon.live")
 
 var users []postgres.UserDetails
 
