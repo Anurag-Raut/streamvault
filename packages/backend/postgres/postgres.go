@@ -921,18 +921,45 @@ func GetChatsFromDatabase(videoId string, numberOfChats int) []Chat {
 }
 
 func PostChat(videoId string, userId string, message string) error {
-	ctx := context.Background()
-	_, err := pool.Exec(ctx,
-		`INSERT INTO "Comment" ("videoId", "userId", "text")
-		 VALUES ($1, $2, $3)`,
-		videoId, userId, message)
-	if err != nil {
-		fmt.Println(err, "reallly")
-		return err
-	}
-	return nil
+    ctx := context.Background()
 
+    // Check if the total number of comments for the video exceeds 100
+    var count int
+    err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM "Comment" WHERE "videoId" = $1`, videoId).Scan(&count)
+    if err != nil {
+        return err
+    }
+
+    if count >= 100 {
+        // Delete the oldest comments to keep the count at 100
+        _, err = pool.Exec(ctx, `
+            WITH old_comments AS (
+                SELECT id
+                FROM "Comment"
+                WHERE "videoId" = $1
+                ORDER BY id ASC
+                LIMIT $2
+            )
+            DELETE FROM "Comment"
+            WHERE id IN (SELECT id FROM old_comments)
+        `, videoId, count-99)
+        if err != nil {
+            return err
+        }
+    }
+
+    // Insert the new comment
+    _, err = pool.Exec(ctx, `
+        INSERT INTO "Comment" ("videoId", "userId", "text")
+        VALUES ($1, $2, $3)
+    `, videoId, userId, message)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
+
 
 type UserDetails struct {
 	Username     string  `json:"username"`
