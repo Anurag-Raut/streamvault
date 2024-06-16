@@ -277,7 +277,7 @@ func StartChatBots() {
 
 			chat.Broadcast <- msg
 
-			time.Sleep(1000 * time.Second)
+			time.Sleep(3 * time.Second)
 
 			// chat.Broadcast
 
