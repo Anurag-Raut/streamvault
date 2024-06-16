@@ -7,6 +7,10 @@ import Link from 'next/link';
 import Avatar from "./avatar";
 import { RiVideoAddFill } from "react-icons/ri";
 import HeaderDropDown from "./headerDropDown";
+import Image from 'next/image';
+import ICON from '../../../public/icon.svg';
+
+
 
 export type User = {
     username: string,
@@ -21,9 +25,12 @@ export default async function Header() {
 
     return (
         <div className="w-[100%] h-[10%] bg-primaryGrad1 fixed top-0 flex justify-between items-center p-10 " >
-            <div>
-
+      
+            <div className="text-xl font-extrabold">
+                ECHON
             </div>
+
+
             {
                 user.isLoggedIn ?
                     <div className=" flex items-center ">
