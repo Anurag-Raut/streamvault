@@ -16,6 +16,10 @@ jobs:
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
       - name: stop go backend
         run: sudo systemctl stop go-backend
+      - name: Reload systemd
+        run: sudo systemctl daemon-reload
       - name: start go backend
         run: sudo systemctl start go-backend
+      - name: Reload systemd
+        run: sudo systemctl daemon-reload
     
