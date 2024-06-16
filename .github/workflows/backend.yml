@@ -14,7 +14,8 @@ jobs:
   
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
-
+      - name: stop go backend
+        run: sudo systemctl stop go-backend
       - name: start go backend
         run: sudo systemctl start go-backend
     
