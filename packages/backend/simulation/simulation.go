@@ -138,12 +138,22 @@ var streams = []Stream{
 	},
 }
 
+
+func deleteStreamsByTitle(){
+	for _,stream:=range(streams) {
+		fmt.Println("deleteing ")
+		postgres.DeleteStreamsByTitle(stream.Title)
+	}
+
+}
+
 func StartSimulation() {
 	fmt.Println("simulation started")
 	seed := time.Now().UTC().UnixNano()
 	nameGenerator := namegenerator.NewNameGenerator(seed)
 
 	fmt.Println("making user")
+	deleteStreamsByTitle()
 
 	fmt.Println("adding stream")
 	for i := 0; i < 5; i++ {

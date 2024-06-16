@@ -5,13 +5,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Go 1.22.1
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22.2
-      - name: Display Go version
-        run: go version
-  
+      
+      
       - name: Add .env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
       - name: stop go backend

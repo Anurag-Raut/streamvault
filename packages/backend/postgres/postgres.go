@@ -1241,3 +1241,18 @@ func SaveVod(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 
 }
+
+func DeleteStreamsByTitle(title string) error {
+    ctx := context.Background()
+
+    // Assuming you have a pool variable initialized elsewhere
+    _, err := pool.Exec(ctx,
+        `DELETE FROM "Video" WHERE title = $1`,
+        title,
+    )
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
