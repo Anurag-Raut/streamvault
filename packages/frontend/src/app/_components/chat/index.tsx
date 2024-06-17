@@ -33,6 +33,8 @@ type ReceivedChatMessage = {
 };
 
 export default function Chat({ streamId }: { streamId: string }) {
+    useEffect(() => {
+
     import('ldrs').then(ldrs => {
         const { tailChase } = ldrs;
 
@@ -40,6 +42,7 @@ export default function Chat({ streamId }: { streamId: string }) {
         tailChase.register();
      
     });
+},[])
     const [chats, setChats] = useState<ReceivedChatMessage[]>([]);
     const [text, setText] = useState<string>("");
     const [socket, setSocket] = useState<WebSocket | null>(null);

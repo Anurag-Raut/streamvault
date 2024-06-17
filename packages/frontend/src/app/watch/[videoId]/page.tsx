@@ -66,8 +66,15 @@ export default function Watch({ params }: { params: { videoId: string } }) {
     playerRef.current = player;
 
     setInterval(() => {
-    player?.addRemoteTextTrack(captionOption);
-    },2000)
+      // Remove all existing text tracks
+      const tracks = player.remoteTextTracks();
+      while (tracks.length > 0) {
+        player.removeRemoteTextTrack(tracks[0]);
+      }
+
+      // Add the new track
+      player.addRemoteTextTrack(captionOption);
+    }, 2000);
     
 
     // You can handle player events here, for example:

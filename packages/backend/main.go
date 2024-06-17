@@ -12,13 +12,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"os/exec"
 	"streamvault/auth"
 	"streamvault/chat"
 	"streamvault/postgres"
 	"streamvault/rmq"
-	"streamvault/simulation"
+
+	// "streamvault/simulation"
 	"streamvault/utils"
 
 	"os"
@@ -74,7 +76,8 @@ func SendToSubtitler(message, streamId string, duration, totalDuration float64, 
 		return err
 	}
 	fmt.Println("jsonPayload:")
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), bytes.NewBuffer(jsonPayload))
+	fmt.Println("sending to subtitler ")
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/receive_text", env.Get("SUBTITLER_API_URL", "http://loclhost:5000")), bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -83,6 +86,8 @@ func SendToSubtitler(message, streamId string, duration, totalDuration float64, 
 		fmt.Println("Error sending request:", err)
 		return err
 	}
+
+	fmt.Println("done sennding")
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -193,18 +198,22 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 				start := strings.Index(line, "'") + 1
 				end := strings.LastIndex(line, "'")
 				filePath := line[start:end]
+				fmt.Println("filepath",filePath)
 				parts := strings.Split(filePath, "/")
+				time.Sleep(time.Millisecond*200)
 
 				// Get the file name from the file path
 				if strings.HasSuffix(filePath, ".ts") && !strings.HasSuffix(filePath, ".m3u8.tmp") {
 					cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath)
 					output, err := cmd.CombinedOutput()
 					if err != nil {
-						fmt.Println("Error executing ffprobe command:", err)
-						return
+						// fmt.Println("Error executing ffprobe command:", err.Error())
+						// return
+						continue
 					}
 
 					durSting := string(output)
+					// fmt.Println(dur)
 					durSting = strings.TrimSuffix(durSting, "\n")
 					duration, err := strconv.ParseFloat(durSting, 64)
 
@@ -680,8 +689,8 @@ func main() {
 	defer postgres.Disconnect()
 	go chat.HandleMessages()
 
-	go simulation.StartSimulation()
-	defer simulation.StopSimulation()
+	// go simulation.StartSimulation()
+	// defer simulation.StopSimulation()
 
 
 	// go simulation.StartChatBots()

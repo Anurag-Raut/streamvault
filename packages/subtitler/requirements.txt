@@ -1,3 +1,4 @@
 faster_whisper==1.0.2
 flask
 pika
+python-dotenv

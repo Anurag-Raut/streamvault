@@ -4,29 +4,35 @@ import threading
 from transcriber import transcribe_audio,stop_transcription,start_transcription
 import json
 
+from dotenv import load_dotenv ,dotenv_values
 
+load_dotenv()
 app = Flask(__name__)
-
+config = dotenv_values(".env")  
 # RabbitMQ connection parameters
-RABBITMQ_HOST = 'rabbitmq'
-RABBITMQ_PORT = 5672
-RABBITMQ_USERNAME = 'guest'
-RABBITMQ_PASSWORD = 'guest'
+# RABBITMQ_HOST = 
+# RABBITMQ_PORT = 5672
+# RABBITMQ_USERNAME = "jsrjrfvz"
+# RABBITMQ_PASSWORD = "wbD4zgfX6f9eKCCbQctr7V5QcstGo0RQ"
 
+
+# connection =None
 # List to store queue names
 queues = []
 
+
+
+
 def push_to_rabbitmq(message, streamId):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)))
+    connection = pika.BlockingConnection(pika.URLParameters(config["RMQ_URL"]))
     channel = connection.channel()
     channel.queue_declare(queue=streamId)
     channel.basic_publish(exchange='', routing_key=streamId, body=message)
     connection.close()
 
 def consume_from_queue(queue_name):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)))
+    connection = pika.BlockingConnection(pika.URLParameters(config["RMQ_URL"]))
+
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
 

@@ -20,15 +20,15 @@ export type User = {
 }
 export default async function Header() {
     const user: User = await get('getLoggedUserDetails', {}, new Headers(headers()))
-    console.log(user, "userasdasd")
+    // console.log(user, "userasdasd")
 
 
     return (
         <div className="w-[100%] h-[10%] bg-primaryGrad1 fixed top-0 flex justify-between items-center p-10 " >
-      
-            <div className="text-xl font-extrabold">
+
+            <Link href={"/"} className="text-xl font-extrabold cursor-pointer  bg-clip-text bg-white hover:bg-purple">
                 ECHON
-            </div>
+            </Link>
 
 
             {
@@ -45,7 +45,7 @@ export default async function Header() {
                                 <li><a>Item 2</a></li>
                             </ul>
                         </div> */}
-                        <HeaderDropDown/>
+                        <HeaderDropDown />
 
                         {/* </Link> */}
                         <Link className="mx-5" href={'/channel/' + user.username}>

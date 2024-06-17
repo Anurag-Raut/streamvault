@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-     "start":"sudo docker start rabbitmq  &&  python3 server.py  "
+     "start":" python3 server.py  "
     },
     "keywords": [],
     "author": "",

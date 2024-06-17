@@ -5,16 +5,38 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
       
-      
-      - name: Add .env file
+      - name: Add backend.env file
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
+      - name: Add subtitler .env file
+        run: touch ./packages/subtitler/.env && echo "${{ secrets.SUBTITLER_ENV_FILE }}" >> ./packages/subtitler/.env
+      - name: install backend deps
+        run: cd packages/backend && go mod download
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd packages/subtitler && pip3 install -r requirements.txt
+     
+
       - name: stop go backend
         run: sudo systemctl stop go-backend
-      - name: Reload systemd
-        run: sudo systemctl daemon-reload
+     
       - name: start go backend
         run: sudo systemctl start go-backend
+
+      - name: stop subtitler
+        run: sudo systemctl stop extractor.service
+    
+     
+      - name: start subtitler
+        run: sudo systemctl start extractor.service
+      - name: install python deps deps
+        run: cd packages/subtitler && python3 install -r requirements.txt
+
       - name: Reload systemd
         run: sudo systemctl daemon-reload
     

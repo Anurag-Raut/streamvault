@@ -1,4 +1,5 @@
 from faster_whisper import WhisperModel
+import os
 
 model_size = "tiny"
 
@@ -16,13 +17,28 @@ def seconds_to_formatted_time(seconds):
 
 def start_transcription(streamId):
     try:
+        # Directory where subtitle files are stored
+        directory = '/home/anurag/s3mnt/subtitle'
+        
+        # Create the directory if it doesn't exist
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        # Full file path for the subtitle file
+        file_path = os.path.join(directory, f'{streamId}.vtt')
+        
+        # Check if the file handle already exists in the dictionary
         if streamId in file_handles:
             f = file_handles[streamId]
         else:
-            f = open(f'/home/anurag/s3mnt/subtitle/{streamId}.vtt', "a")
+            # Open the file in append mode, creating it if it doesn't exist
+            f = open(file_path, "a")
             file_handles[streamId] = f
+        
+        # Write the VTT header to the file
         f.write("WEBVTT\n\n")
         f.flush()
+        
         print(f"Transcription started for stream {streamId}")
     except Exception as e:
         print(f"Error: {str(e)}")
