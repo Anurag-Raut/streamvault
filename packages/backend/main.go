@@ -20,7 +20,7 @@ import (
 	"streamvault/postgres"
 	"streamvault/rmq"
 
-	// "streamvault/simulation"
+	"streamvault/simulation"
 	"streamvault/utils"
 
 	"os"
@@ -689,8 +689,8 @@ func main() {
 	defer postgres.Disconnect()
 	go chat.HandleMessages()
 
-	// go simulation.StartSimulation()
-	// defer simulation.StopSimulation()
+	go simulation.StartSimulation()
+	defer simulation.StopSimulation()
 
 
 	// go simulation.StartChatBots()
