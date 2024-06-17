@@ -35,7 +35,7 @@ jobs:
       - name: start subtitler
         run: sudo systemctl start subtitler.service
       - name: install python deps deps
-        run: cd packages/subtitler && pip3 install -r requirements.txt
+        run: cd packages/subtitler && source .venv/bin/activate && pip3 install -r requirements.txt
 
       - name: Reload systemd
         run: sudo systemctl daemon-reload
