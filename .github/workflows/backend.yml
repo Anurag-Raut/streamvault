@@ -29,11 +29,11 @@ jobs:
         run: sudo systemctl start go-backend
 
       - name: stop subtitler
-        run: sudo systemctl stop extractor.service
+        run: sudo systemctl stop subtitler.service
     
      
       - name: start subtitler
-        run: sudo systemctl start extractor.service
+        run: sudo systemctl start subtitler.service
       - name: install python deps deps
         run: cd packages/subtitler && python3 install -r requirements.txt
 
