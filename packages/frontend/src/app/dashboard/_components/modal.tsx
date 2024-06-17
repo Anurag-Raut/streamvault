@@ -27,7 +27,7 @@ export default function Modal() {
             console.log(res.thumbnailPath, "res")
             const thumbnail = "${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/" + res.thumbnailPath;
             console.log(thumbnail, "thumbnail")
-            setNewStreamInfo((prev) => ({ ...prev, thumbnail: thumbnail }))
+            setNewStreamInfo((prev:any) => ({ ...prev, thumbnail: thumbnail }))
             toast.success('Thumbnail uploaded successfully')
         }
         catch (err) {
@@ -61,20 +61,20 @@ export default function Modal() {
                     <div className="flex items-center my-5 justify-between  ">
                         <h1 className="text-xl text-center mr-3 text-nowrap">Title :</h1>
                         <input onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                            setNewStreamInfo((prev) => ({ ...prev, title: event.target.value }))
+                            setNewStreamInfo((prev:any) => ({ ...prev, title: event.target.value }))
                         }} type="text" placeholder="Type here" className="input input-bordered w-full max-w-[75%] " />
 
                     </div>
                     <div className="flex items-center my-5 justify-between ">
                         <h1 className="text-xl text-center mr-3 text-nowrap ">Description :</h1>
                         <textarea onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
-                            setNewStreamInfo((prev) => ({ ...prev, description: event.target.value }))
+                            setNewStreamInfo((prev:any) => ({ ...prev, description: event.target.value }))
                         }} className="textarea textarea-bordered w-full  max-w-[75%]" placeholder="Bio"></textarea>
                     </div>
                     <div className="flex items-center my-5 justify-between ">
                         <h1 className="text-xl text-center mr-3 text-nowrap">Category :</h1>
                         <input onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                            setNewStreamInfo((prev) => ({ ...prev, category: event.target.value }))
+                            setNewStreamInfo((prev:any) => ({ ...prev, category: event.target.value }))
                         }} type="text" placeholder="Type here" className="input input-bordered w-full max-w-[75%]" />
 
                     </div>
