@@ -14,8 +14,8 @@ jobs:
         run: touch ./packages/backend/.env && echo "${{ secrets.ENV_FILE }}" >> ./packages/backend/.env
       - name: Add subtitler .env file
         run: touch ./packages/subtitler/.env && echo "${{ secrets.SUBTITLER_ENV_FILE }}" >> ./packages/subtitler/.env
-      - name: install backend deps
-        run: cd packages/backend && go mod download
+      # - name: install backend deps
+      #   run: cd packages/backend && go mod download
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
