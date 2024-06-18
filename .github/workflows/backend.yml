@@ -21,21 +21,23 @@ jobs:
           python -m pip install --upgrade pip
           cd packages/subtitler && pip3 install -r requirements.txt
      
+      
 
       - name: stop go backend
         run: sudo systemctl stop go-backend
+      - name: stop subtitler
+        run: sudo systemctl stop subtitler.service
+
+      - name: Reload systemd
+        run: sudo systemctl daemon-reload
      
       - name: start go backend
         run: sudo systemctl start go-backend
 
-      - name: stop subtitler
-        run: sudo systemctl stop subtitler.service
     
      
       - name: start subtitler
         run: sudo systemctl start subtitler.service
-      - name: install python deps deps
-        run: cd packages/subtitler && pip3 install -r requirements.txt
 
       - name: Reload systemd
         run: sudo systemctl daemon-reload
