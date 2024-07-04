@@ -1,14 +1,20 @@
 package simulation
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand/v2"
+	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"streamvault/chat"
 	"streamvault/postgres"
+	"streamvault/utils"
 	"time"
 
 	cohere "github.com/cohere-ai/cohere-go/v2"
@@ -209,6 +215,13 @@ func StartSimulation() {
 			fmt.Println("stream added")
 			fmt.Printf("%s/%s.m3u8", dirPath, id)
 			fmt.Println(inputPath)
+			responseJson := fmt.Sprintf(`{"streamId": "%s"}`, id)
+			_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+			if err != nil {
+				fmt.Println("Error start_transcription:", err)
+
+				return 
+			}
 			cmd := exec.Command("ffmpeg",
 
 				"-i", inputPath,
@@ -218,15 +231,92 @@ func StartSimulation() {
 				"-f", "hls",
 				"-g", "20",
 				"-hls_time", "5",
-				"-hls_list_size", "50",
+				"-hls_list_size", "500",
 				"-hls_flags", "delete_segments",
 				// "-progress", "pipe:1",
 				fmt.Sprintf("%s/%s.m3u8", dirPath, id),
 			)
+
+
+			stderr, err := cmd.StderrPipe()
+			if err != nil {
+				fmt.Println("Error getting stderr pipe:", err)
+				return
+			}
+		
 			if err := cmd.Start(); err != nil {
 				fmt.Println("Error starting command:", err)
 				return
 			}
+		
+			defer func() {
+				
+				postgres.UpdateStatus(id, false)
+				fmt.Println("WebSocket connection closed")
+			}()
+		
+			go func() {
+				defer stderr.Close()
+				scanner := bufio.NewScanner(stderr)
+				var totalDuration float64
+				for scanner.Scan() {
+					line := scanner.Text()
+					// Parse the progress information from the stderr output
+					// Progress information typically starts with "frame="
+					if strings.Contains(line, "Opening '") && strings.Contains(line, "' for writing") {
+						// Extract the file path between the single quotes
+						start := strings.Index(line, "'") + 1
+						end := strings.LastIndex(line, "'")
+						filePath := line[start:end]
+						fmt.Println("filepath",filePath)
+						parts := strings.Split(filePath, "/")
+						time.Sleep(time.Millisecond*200)
+		
+						// Get the file name from the file path
+						if strings.HasSuffix(filePath, ".ts") && !strings.HasSuffix(filePath, ".m3u8.tmp") {
+							cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath)
+							output, err := cmd.CombinedOutput()
+							if err != nil {
+								// fmt.Println("Error executing ffprobe command:", err.Error())
+								// return
+								continue
+							}
+		
+							durSting := string(output)
+							// fmt.Println(dur)
+							durSting = strings.TrimSuffix(durSting, "\n")
+							duration, err := strconv.ParseFloat(durSting, 64)
+		
+							if err != nil {
+								fmt.Println("Error converting duration:", err)
+		
+								return
+							}
+		
+							fmt.Println("Duration:", duration)
+							var a = strings.Split(parts[len(parts)-1], ".")[0]
+							segmentNumberString := strings.TrimPrefix(a, id)
+							segmentNumber, err := strconv.Atoi(segmentNumberString)
+							if err != nil {
+								fmt.Println("Error converting segment number:", err)
+								return
+							}
+		
+							fmt.Println("Segment Number:", segmentNumber)
+		
+							err = utils.SendToSubtitler(parts[len(parts)-2]+"/"+parts[len(parts)-1], id, duration, totalDuration, segmentNumber)
+							if err != nil {
+								fmt.Println("Error sending to subtitler:", err)
+								return
+							}
+							totalDuration += duration
+		
+						}
+		
+					}
+				}
+			}()
+
 
 			if err := cmd.Wait(); err != nil {
 				fmt.Println("Error waiting for command:", err)

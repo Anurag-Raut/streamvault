@@ -32,8 +32,8 @@ export default function Watch({ params }: { params: { videoId: string } }) {
     controls: true,
     responsive: true,
     aspectRatio: '16:9',
-
-
+    liveui: true,
+    nativeTextTracks: true,
     fluid: true,
     sources: [{
       src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/${params.videoId}/${params.videoId}.m3u8`,
@@ -43,9 +43,9 @@ export default function Watch({ params }: { params: { videoId: string } }) {
       kind: 'captions',
       srclang: 'en',
       label: 'English',
-      src: '/test.vtt',
+      src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/subtitle/${params.videoId}.vtt`,
       mode:"showing",
-      // default:true/
+      default:true
 
     }]
 
@@ -53,7 +53,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
 
 
   let captionOption = {
-    kind: 'captions',
+    kind: 'subtitle',
     srclang: 'en',
     label: 'English',
     src: `${process.env.NEXT_PUBLIC_BACKEND_URL}/hls/subtitle/${params.videoId}.vtt`,
@@ -76,7 +76,7 @@ export default function Watch({ params }: { params: { videoId: string } }) {
       player.addRemoteTextTrack(captionOption);
     }, 2000);
     
-
+    
     // You can handle player events here, for example:
     player.on('waiting', () => {
       videojs.log('player is waiting');
