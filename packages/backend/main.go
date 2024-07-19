@@ -249,12 +249,12 @@ func startStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseJson := fmt.Sprintf(`{"streamId": "%s"}`, streamId)
-	_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
-	if err != nil {
-		fmt.Println("Error starting transcription:", err)
-		utils.SendError(w, "Error starting transcription", http.StatusInternalServerError)
-		return
-	}
+	// _, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+	// if err != nil {
+	// 	fmt.Println("Error starting transcription:", err)
+	// 	utils.SendError(w, "Error starting transcription", http.StatusInternalServerError)
+	// 	return
+	// }
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", env.Get("FRONTEND_URL", "https://streamvault.site"))

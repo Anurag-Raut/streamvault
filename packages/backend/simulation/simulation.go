@@ -2,11 +2,11 @@ package simulation
 
 import (
 	"bufio"
-	"bytes"
+	// "bytes"
 	"context"
 	"fmt"
 	"math/rand/v2"
-	"net/http"
+	// "net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -155,7 +155,7 @@ func deleteStreamsByTitle(){
 
 func StartSimulation() {
 	fmt.Println("simulation started")
-	seed := time.Now().UTC().UnixNano()
+	seed := time.Now().UTC().UnixNano()	
 	nameGenerator := namegenerator.NewNameGenerator(seed)
 
 	fmt.Println("making user")
@@ -215,13 +215,14 @@ func StartSimulation() {
 			fmt.Println("stream added")
 			fmt.Printf("%s/%s.m3u8", dirPath, id)
 			fmt.Println(inputPath)
-			responseJson := fmt.Sprintf(`{"streamId": "%s"}`, id)
-			_, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
-			if err != nil {
-				fmt.Println("Error start_transcription:", err)
+			// responseJson := fmt.Sprintf(`{"streamId": "%s"}`, id)
+			// _, err = http.Post(fmt.Sprintf("%s/start_transcription", env.Get("SUBTITLER_API_URL", "http://subtitler:5000")), "application/json", bytes.NewBuffer([]byte(responseJson)))
+			// if err != nil {
+			// 	fmt.Println("Error start_transcription:", err)
 
-				return 
-			}
+			// 	return 
+			// }
+			fmt.Println("YAYYY")
 			cmd := exec.Command("ffmpeg",
 
 				"-i", inputPath,
@@ -236,6 +237,9 @@ func StartSimulation() {
 				// "-progress", "pipe:1",
 				fmt.Sprintf("%s/%s.m3u8", dirPath, id),
 			)
+
+
+			
 
 
 			stderr, err := cmd.StderrPipe()

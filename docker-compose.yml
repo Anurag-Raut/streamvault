@@ -7,12 +7,19 @@
         ports:
           - "8080:8080"
         depends_on:
-          - rabbitmq
-          - database
+          subtitler:
+            condition: service_healthy
+          rabbitmq:
+            condition: service_started
+          database:
+            condition: service_started
         networks:
           - network-app
         volumes:
-        - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
+          - /home/anurag/s3mnt:/home/anurag/s3mnt/:rw
+        restart: always
+
+
         
     rabbitmq:
       image: rabbitmq:3.13-management
@@ -52,6 +59,11 @@
         rabbitmq:
           condition: service_healthy
       restart: always
+      healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+          interval: 5s
+          timeout: 5s
+          retries: 5
 
     # webserver:
     #   image: nginx:latest
