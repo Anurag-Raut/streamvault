@@ -223,17 +223,18 @@ func StartSimulation() {
 			// 	return 
 			// }
 			fmt.Println("YAYYY")
-			cmd := exec.Command("ffmpeg",
+				cmd := exec.Command("ffmpeg",
+
 				"-i", inputPath,
 				"-loop", "1",
-				"-c:v", "libx264", "-preset", "medium", // Changed to "veryfast"
-				"-tune", "zerolatency",
+				"-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency",
 				"-c:a", "aac", "-ar", "44100", "-b:a", "64k",
 				"-f", "hls",
-				"-g", "50",                 // Increased GOP size
-				"-hls_time", "10",          // Increased segment duration
+				"-g", "20",
+				"-hls_time", "5",
 				"-hls_list_size", "500",
 				"-hls_flags", "delete_segments",
+				// "-progress", "pipe:1",
 				fmt.Sprintf("%s/%s.m3u8", dirPath, id),
 			)
 
